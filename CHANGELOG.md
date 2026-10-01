@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased]
+
+### Signal brand refresh
+
+- Display name is now **Influence Signal** (with a space) in the UI, page title, masthead, footer, report, error messages, launchers, README and docs. Technical identifiers are unchanged (`influencesignal`, `INFLUENCESIGNAL_*`, `influencesignal.db`, asset slugs).
+- The pasted CSS, hand-written lockup, masthead, hero, cards, page headers, notes and footer are replaced by the shared Signal theme (`src/influencesignal/ui/signal_theme.py`, synced from Signal Hub): Organic look, Figtree, Market family colour (#728157). The sidebar logo is the new mark; the favicon is the 64 px mark. Demo, legal and boundary notes use `sig.note`; the "Checklist support, not legal advice." disclaimer stays on every compliance screen and in the footer.
+- The results chart uses the per-app Signal Plotly template (`sig.chart`) and the family highlight colour; creator names are no longer clipped. The printable HTML report uses the Organic Market tokens instead of the old teal/coral palette.
+- `.streamlit/config.toml` is the synced Signal config (Market `primaryColor`, cream background).
+- Assets: synced banner (`influencesignal-banner.png`), social preview and marks (`influencesignal-mark.svg`, `-32/64/512.png`); the old `influencesignal-banner.svg` and `influencesignal-lockup-dark.svg` are removed. README screenshots are retaken.
+- README follows the Signal README template (sections in suite order, Market badges, "Where this fits in Signal" table, references to the official sources, suite footer). Content, limits and honesty statements are kept.
+- Architecture rule amended: no Streamlit under `src/influencesignal/` **except `src/influencesignal/ui/`** (guard test, CLAUDE.md, AGENTS.md, CONTRIBUTING.md, PR template). `influencesignal.ui` ships its marks as package data.
+- Added GitHub issue templates (bug report, feature request, config) and brand tests (theme shell, no old palette, display name, synced config and assets, README order, issue templates).
+
 ## 1.0.0.dev0 — unreleased
 
 First build of **InfluenceSignal**, the Signal suite's influencer campaign manager for the Norwegian market. Developed under the working name CreatorSignal; renamed before any release (see *Naming*).
