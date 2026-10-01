@@ -1,4 +1,4 @@
-"""User-facing errors raised by InfluenceSignal."""
+"""User-facing errors raised by Influence Signal."""
 
 from __future__ import annotations
 
@@ -20,8 +20,8 @@ def friendly_message(exc: Exception) -> str:
     if isinstance(exc, DataProblem):
         return str(exc)
     if isinstance(exc, ValueError):
-        return f"InfluenceSignal could not complete that step: {exc}"
+        return f"Influence Signal could not complete that step: {exc}"
     return (
-        "InfluenceSignal could not complete that step. Check the input and try again. "
+        "Influence Signal could not complete that step. Check the input and try again. "
         "Set INFLUENCESIGNAL_DEBUG=1 before launch if you need technical details."
     )

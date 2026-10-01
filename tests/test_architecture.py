@@ -1,4 +1,5 @@
-"""Architecture rules for a future merged Signal Hub: the package is UI-free and storage sits behind one module."""
+"""Architecture rules for a future merged Signal Hub: the package is UI-free (except its ``ui/`` subpackage, which holds
+the synced Signal theme) and storage sits behind one module."""
 
 import ast
 from pathlib import Path
@@ -7,6 +8,7 @@ import influencesignal
 
 ROOT = Path(__file__).parents[1]
 SRC = ROOT / "src"
+UI_PACKAGE = SRC / "influencesignal" / "ui"  # the one place under src/ that may import Streamlit
 
 
 def _imported_modules(path: Path) -> set[str]:
@@ -20,13 +22,21 @@ def _imported_modules(path: Path) -> set[str]:
     return modules
 
 
-def test_no_file_under_src_imports_streamlit() -> None:
+def _imports_streamlit(path: Path) -> bool:
+    return any(module == "streamlit" or module.startswith("streamlit.") for module in _imported_modules(path))
+
+
+def _in_ui_package(path: Path) -> bool:
+    return path.is_relative_to(UI_PACKAGE)
+
+
+def test_no_file_under_src_imports_streamlit_except_ui() -> None:
     offenders = [
         str(path.relative_to(ROOT))
         for path in SRC.rglob("*.py")
-        if any(module == "streamlit" or module.startswith("streamlit.") for module in _imported_modules(path))
+        if not _in_ui_package(path) and _imports_streamlit(path)
     ]
-    assert not offenders, f"Streamlit belongs in app.py or pages/, not the package: {offenders}"
+    assert not offenders, f"Streamlit belongs in app.py, pages/ or src/influencesignal/ui/, not the package: {offenders}"
 
 
 def _app_code() -> list[Path]:
@@ -35,14 +45,14 @@ def _app_code() -> list[Path]:
     return [path for path in ROOT.rglob("*.py") if not skip & set(path.relative_to(ROOT).parts)]
 
 
-def test_streamlit_only_in_app_and_pages() -> None:
+def test_streamlit_only_in_app_pages_and_ui_package() -> None:
     offenders = [
         str(path.relative_to(ROOT))
         for path in _app_code()
-        if path.name != "app.py" and path.parent.name != "pages"
-        and any(module == "streamlit" or module.startswith("streamlit.") for module in _imported_modules(path))
+        if path.name != "app.py" and path.parent.name != "pages" and not _in_ui_package(path)
+        and _imports_streamlit(path)
     ]
-    assert not offenders, f"Streamlit code belongs in app.py or pages/: {offenders}"
+    assert not offenders, f"Streamlit code belongs in app.py, pages/ or src/influencesignal/ui/: {offenders}"
 
 
 def test_only_storage_module_touches_sqlite() -> None:

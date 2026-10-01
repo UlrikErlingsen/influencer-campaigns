@@ -1,3 +1,4 @@
+from html import unescape
 from pathlib import Path
 
 import pytest
@@ -46,7 +47,7 @@ def _text(app: AppTest) -> str:
     parts += [str(item.value) for item in app.caption]
     parts += [str(item.value) for item in app.sidebar.caption]
     parts += [str(item.value) for kind in (app.warning, app.error, app.info, app.success) for item in kind]
-    return "\n".join(parts)
+    return unescape("\n".join(parts))  # the Signal theme HTML-escapes header and note text
 
 
 def _demo_store(folder: Path) -> Store:

@@ -1,4 +1,4 @@
-"""Capture README screenshots from a running InfluenceSignal (fictional demo loaded).
+"""Capture README screenshots from a running Influence Signal (fictional demo loaded).
 
 Dev-only helper; not a runtime dependency. Usage:
 

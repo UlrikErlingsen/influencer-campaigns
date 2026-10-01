@@ -9,18 +9,18 @@ import streamlit as st
 from influencesignal.errors import DataProblem
 from influencesignal.storage import FORMATS
 from influencesignal.utm import PLATFORMS, build_tracked_url, creator_token
+from influencesignal.ui import signal_theme as sig
 
 from .ui import (
     date_or_none,
     demo_note,
-    page_header,
     require_campaign,
     store,
 )
 
 
 def render() -> None:
-    page_header(
+    sig.header(
         "4 · Deliverables",
         "Deliverables, codes and tracked links",
         "One row per post: platform, format, due date, agreed fee, discount code and a tracked link in one "

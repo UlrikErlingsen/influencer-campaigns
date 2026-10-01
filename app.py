@@ -1,4 +1,4 @@
-"""InfluenceSignal Streamlit application: entry point, navigation and sidebar.
+"""Influence Signal Streamlit application: entry point, navigation and sidebar.
 
 The pages live in ``pages/`` (one module per page, each exposing ``render()``); all logic and storage live in
 the ``influencesignal`` package under ``src/``.
@@ -24,6 +24,7 @@ for path in (ROOT / "src", ROOT):
 
 from influencesignal import DISCLAIMER, __version__
 from influencesignal.storage import default_db_path
+from influencesignal.ui import signal_theme as sig
 from pages import (
     campaigns,
     compliance,
@@ -35,7 +36,7 @@ from pages import (
     settings,
     welcome,
 )
-from pages.ui import apply_theme, footer, masthead, show_error, store
+from pages.ui import KEY, MARK_SVG, show_error, store
 
 # (url slug, title, icon, render function, navigation section)
 PAGES = [
@@ -50,11 +51,10 @@ PAGES = [
     ("settings", "Settings & data", ":material/settings:", settings.render, "Workspace"),
 ]
 
-st.set_page_config(page_title="InfluenceSignal | Influencer campaigns", page_icon="◉", layout="wide")
-apply_theme()
-logo = ROOT / "assets" / "influencesignal-lockup-dark.svg"
-if logo.exists():
-    st.logo(str(logo), size="large", icon_image=str(ROOT / "assets" / "influencesignal-mark.svg"))
+st.set_page_config(**sig.page_config(KEY, "Influencer campaigns"))
+sig.apply(KEY)
+if MARK_SVG.exists():
+    st.logo(str(MARK_SVG), size="large", icon_image=str(MARK_SVG))
 
 try:
     db = store()
@@ -99,9 +99,10 @@ with st.sidebar:
     st.caption(DISCLAIMER)
     st.caption("Local mode · no telemetry · no external AI calls · no social-network APIs")
 
-masthead()
+sig.masthead(KEY, ["Cost per result", "Norwegian label checklist", "Local data"],
+             kicker="SHORTLIST → PUBLISH → CHECK → REPORT")
 try:
     current.run()
 except Exception as exc:
     show_error(exc)
-footer()
+sig.footer(KEY, __version__, DISCLAIMER)

@@ -1,7 +1,8 @@
-"""InfluenceSignal: open, local-first influencer campaign manager for the Norwegian market.
+"""Influence Signal: open, local-first influencer campaign manager for the Norwegian market.
 
-Public API. The package never imports Streamlit: the UI (``app.py``) calls these functions, so another front end
-(for example a future merged Signal Hub) can reuse the same logic and storage.
+Public API. Outside the ``ui`` subpackage (the synced Signal theme) the package never imports Streamlit: the UI
+(``app.py`` and ``pages/``) calls these functions, so another front end (for example a future merged Signal Hub) can
+reuse the same logic and storage.
 """
 
 __version__ = "1.0.0.dev0"

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from html import escape
-
 import streamlit as st
 
 from influencesignal.compliance import (
@@ -12,22 +10,24 @@ from influencesignal.compliance import (
 )
 from influencesignal.errors import DataProblem, GateBlocked
 from influencesignal.storage import STAGES
+from influencesignal.ui import signal_theme as sig
 
 from .ui import (
     STATUS_ICONS,
+    creator_card,
     current_rules,
     demo_note,
     handle_label,
+    lane_title,
     nok,
     num,
-    page_header,
     require_campaign,
     store,
 )
 
 
 def render() -> None:
-    page_header(
+    sig.header(
         "3 · Pipeline",
         "Campaign pipeline",
         "Move each creator with the stage selector on their card. Paid and Reported are guarded: every deliverable "
@@ -77,17 +77,19 @@ def render() -> None:
         for lane, stage in zip(lanes, lane_group):
             members = engagements[engagements["stage"] == stage]
             with lane:
-                st.markdown(f'<div class="lane-title">{stage}<span>{len(members)}</span></div>', unsafe_allow_html=True)
+                lane_title(stage, len(members))
                 for row in members.to_dict("records"):
                     engagement_id = int(row["id"])
                     with st.container(border=True):
                         labels = statuses.get(engagement_id, [])
                         flags = " ".join(STATUS_ICONS.get(label, "") for label in labels if label != STATUS_NOT_PUBLISHED)
-                        st.markdown(
-                            f'<div class="card-name">{escape(str(row["creator_name"]))} {flags}</div>'
-                            f'<div class="card-meta">{escape(handle_label(row))} · {num(row["followers"])} followers<br>'
-                            f'{deliverable_counts.get(engagement_id, 0)} deliverable(s)</div>',
-                            unsafe_allow_html=True,
+                        creator_card(
+                            str(row["creator_name"]),
+                            flags,
+                            [
+                                f"{handle_label(row)} · {num(row['followers'])} followers",
+                                f"{deliverable_counts.get(engagement_id, 0)} deliverable(s)",
+                            ],
                         )
                         key = f"stage_{engagement_id}_{stage}"
                         st.selectbox(

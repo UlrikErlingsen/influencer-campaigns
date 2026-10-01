@@ -8,13 +8,13 @@ import pandas as pd
 import streamlit as st
 
 from influencesignal.demo import load_demo
+from influencesignal.ui import signal_theme as sig
 
 from .ui import (
     current_db_path,
     current_rules,
     legal_note,
     open_store,
-    page_header,
     rules_path,
     select_campaign_next_run,
     store,
@@ -22,10 +22,10 @@ from .ui import (
 
 
 def render() -> None:
-    page_header(
+    sig.header(
         "Settings & data",
         "Your local workspace",
-        "InfluenceSignal saves everything in one SQLite file. Choose where it lives, reload the demo or start empty.",
+        "Influence Signal saves everything in one SQLite file. Choose where it lives, reload the demo or start empty.",
     )
     db = store()
     st.markdown(f"**Current database:** `{db.path.resolve()}`")
@@ -69,10 +69,9 @@ def render() -> None:
         hide_index=True, width="stretch",
     )
     legal_note()
-    st.markdown(
-        '<div class="boundary"><strong>Privacy.</strong> Creator names, contact details and fees stay in the SQLite '
-        "file on this computer. InfluenceSignal has no accounts, no telemetry and no external AI calls, and never "
-        "contacts a social network. You are the data controller for the personal data you store here; see "
-        "PRIVACY.md.</div>",
-        unsafe_allow_html=True,
+    sig.note(
+        "boundary",
+        "**Privacy.** Creator names, contact details and fees stay in the SQLite file on this computer. Influence "
+        "Signal has no accounts, no telemetry and no external AI calls, and never contacts a social network. You are "
+        "the data controller for the personal data you store here; see PRIVACY.md.",
     )

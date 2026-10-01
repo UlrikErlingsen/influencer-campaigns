@@ -10,20 +10,20 @@ from influencesignal.compliance import (
     STATUS_MISSING,
 )
 from influencesignal.report import build_html, build_report, build_xlsx
+from influencesignal.ui import signal_theme as sig
 
 from .ui import (
     current_rules,
     demo_note,
     legal_note,
     nok,
-    page_header,
     require_campaign,
     store,
 )
 
 
 def render() -> None:
-    page_header(
+    sig.header(
         "7 · Report",
         "Campaign report",
         "An XLSX workbook with every table and the rule sources, and a one-page HTML summary you can print to PDF "

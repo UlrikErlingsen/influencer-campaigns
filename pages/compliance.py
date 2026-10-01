@@ -18,20 +18,20 @@ from influencesignal.compliance import (
     checklist_status,
     paid_gate,
 )
+from influencesignal.ui import signal_theme as sig
 
 from .ui import (
     STATUS_ICONS,
     current_rules,
     demo_note,
     legal_note,
-    page_header,
     require_campaign,
     store,
 )
 
 
 def render() -> None:
-    page_header(
+    sig.header(
         "5 · Compliance",
         "Norwegian advertising checklist",
         "For every published deliverable: is it labelled as advertising at the start, with the recommended wording, "
@@ -51,7 +51,7 @@ def render() -> None:
             category = categories[key]
             st.warning(
                 f"**Restricted category: {category.label}.** {category.note} "
-                f"[Source]({category.url}). InfluenceSignal flags this only; it never says the campaign is compliant."
+                f"[Source]({category.url}). Influence Signal flags this only; it never says the campaign is compliant."
             )
 
     deliverables = db.deliverables(int(campaign["id"]))

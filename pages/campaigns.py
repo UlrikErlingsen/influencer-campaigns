@@ -10,6 +10,7 @@ from influencesignal.compliance import (
     campaign_restricted_categories,
 )
 from influencesignal.storage import CATEGORIES, GOALS
+from influencesignal.ui import signal_theme as sig
 
 from .ui import (
     active_campaign,
@@ -18,14 +19,13 @@ from .ui import (
     demo_note,
     int_or_none,
     legal_note,
-    page_header,
     select_campaign_next_run,
     store,
 )
 
 
 def render() -> None:
-    page_header(
+    sig.header(
         "2 · Campaigns",
         "Campaigns",
         "Name, brand, goal, budget, dates, brief and the deliverables you expect. The landing page drives every "
@@ -50,7 +50,7 @@ def render() -> None:
             st.warning(
                 "Restricted category flagged: "
                 + ", ".join(f"[{categories[key].label}]({categories[key].url})" for key in flagged)
-                + ". Stricter Norwegian rules apply. InfluenceSignal flags this only and never says the campaign is "
+                + ". Stricter Norwegian rules apply. Influence Signal flags this only and never says the campaign is "
                 "compliant."
             )
             legal_note()

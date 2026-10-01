@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "influencesignal"
 version = "1.0.0.dev0"
-description = "InfluenceSignal: open, local-first influencer campaign manager for the Norwegian market"
+description = "Influence Signal: open, local-first influencer campaign manager for the Norwegian market"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-or-later"
@@ -53,6 +53,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 influencesignal = ["rules/*.yaml"]
+"influencesignal.ui" = ["assets/marks/*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]

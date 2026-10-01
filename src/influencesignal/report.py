@@ -139,7 +139,7 @@ DELIVERABLE_EXPORT_COLUMNS = [
 def build_xlsx(report: CampaignReport) -> bytes:
     campaign = report.campaign
     read_me = [
-        ("report", "InfluenceSignal campaign report"),
+        ("report", "Influence Signal campaign report"),
         ("campaign", campaign["name"]),
         ("brand", campaign["brand"]),
         ("goal", campaign["goal"]),
@@ -228,36 +228,39 @@ def build_html(report: CampaignReport) -> str:
         restricted = (
             "<div class='flag'><b>Restricted category flagged:</b> "
             + ", ".join(e(categories[key].label) for key in report.restricted)
-            + ". Stricter Norwegian rules apply. InfluenceSignal flags this only and makes no assessment.</div>"
+            + ". Stricter Norwegian rules apply. Influence Signal flags this only and makes no assessment.</div>"
         )
     demo = f"<div class='demo'>{e(DEMO_NOTICE)}</div>" if report.is_demo else ""
     notes = "".join(f"<li>{e(note)}</li>" for note in report.notes)
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{e(campaign['name'])} — InfluenceSignal report</title>
+<title>{e(campaign['name'])} — Influence Signal report</title>
 <style>
-:root {{ --ink:#17322e; --coral:#d95b40; --mint:#83d2b4; --gold:#f2c66d; --paper:#f8f5ed; --line:#d9ded8; }}
+/* Signal Organic tokens, Market family (Influence Signal). Kept inline: the package does not import the UI theme. */
+:root {{ --ink:#201e1d; --muted:#645c50; --accent:#728157; --accent-text:#56633f; --accent-fill:#e1eecc;
+  --ground:#f5ead8; --paper:#f9f4ed; --line:#ddd3c2; --warn-bg:#fff2eb; --warn-text:#643312; --warn-line:#b2622d;
+  --info-bg:#f0fae1; --info-text:#3d472b; }}
 * {{ box-sizing:border-box; }}
-body {{ margin:0; padding:24px; background:var(--paper); color:var(--ink); font:13px/1.45 Inter,Arial,sans-serif; }}
-main {{ max-width:960px; margin:0 auto; background:white; padding:28px 32px; border-radius:14px; }}
-header {{ display:flex; justify-content:space-between; gap:16px; border-bottom:3px solid var(--ink); padding-bottom:10px; }}
-h1 {{ margin:0; font-size:24px; letter-spacing:-.02em; }} h2 {{ font-size:14px; margin:18px 0 6px; text-transform:uppercase; letter-spacing:.08em; color:var(--coral); }}
-.meta {{ color:#59716c; text-align:right; font-size:12px; }}
+body {{ margin:0; padding:24px; background:var(--ground); color:var(--ink); font:13px/1.45 Figtree,system-ui,Arial,sans-serif; }}
+main {{ max-width:960px; margin:0 auto; background:var(--paper); padding:28px 32px; border-radius:28px; }}
+header {{ display:flex; justify-content:space-between; gap:16px; border-bottom:3px solid var(--accent); padding-bottom:10px; }}
+h1 {{ margin:0; font-size:24px; font-weight:800; letter-spacing:-.03em; }} h2 {{ font-size:14px; margin:18px 0 6px; text-transform:uppercase; letter-spacing:.08em; color:var(--accent-text); }}
+.meta {{ color:var(--muted); text-align:right; font-size:12px; }}
 .kpis {{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }}
-.kpi {{ border:1px solid var(--line); border-radius:10px; padding:8px 10px; }} .kpi span {{ display:block; color:#59716c; font-size:11px; }} .kpi b {{ font-size:16px; }}
+.kpi {{ border:1px solid var(--line); border-radius:16px; padding:8px 10px; }} .kpi span {{ display:block; color:var(--muted); font-size:11px; }} .kpi b {{ font-size:16px; }}
 table {{ width:100%; border-collapse:collapse; font-size:12px; }} th,td {{ border-bottom:1px solid var(--line); padding:4px 6px; text-align:left; }}
-th {{ background:#eef2eb; }} td.n {{ text-align:right; white-space:nowrap; }}
+th {{ background:var(--accent-fill); }} td.n {{ text-align:right; white-space:nowrap; }}
 .cols {{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }} ul {{ margin:4px 0; padding-left:18px; }}
-.disclaimer {{ margin-top:10px; padding:8px 10px; border-left:4px solid var(--gold); background:#fbf3df; font-weight:700; }}
-.flag {{ margin-top:10px; padding:8px 10px; border-left:4px solid var(--coral); background:#fbe9e4; }}
-.demo {{ margin-top:10px; padding:8px 10px; border-left:4px solid var(--mint); background:#eaf6f1; }}
-.notes li {{ margin-bottom:3px; color:#47645e; }} footer {{ margin-top:14px; color:#617670; font-size:11px; text-align:center; }}
-@media print {{ body {{ padding:0; background:white; }} main {{ padding:0; border-radius:0; }} @page {{ size:A4; margin:12mm; }} }}
+.disclaimer {{ margin-top:10px; padding:8px 12px; border-radius:16px; background:var(--warn-bg); color:var(--warn-text); font-weight:700; }}
+.flag {{ margin-top:10px; padding:8px 12px; border-left:4px solid var(--warn-line); border-radius:0 16px 16px 0; background:var(--warn-bg); color:var(--warn-text); }}
+.demo {{ margin-top:10px; padding:8px 12px; border-radius:16px; background:var(--info-bg); color:var(--info-text); }}
+.notes li {{ margin-bottom:3px; color:var(--muted); }} footer {{ margin-top:14px; color:var(--muted); font-size:11px; text-align:center; }}
+@media print {{ body {{ padding:0; background:white; }} main {{ padding:0; border-radius:0; background:white; }} @page {{ size:A4; margin:12mm; }} }}
 @media (max-width:640px) {{ .kpis,.cols {{ grid-template-columns:1fr; }} header {{ display:block; }} .meta {{ text-align:left; }} }}
 </style></head>
 <body><main>
 <header><div><h1>{e(campaign['name'])}</h1><div>{e(campaign['brand'])} · goal: {e(campaign['goal'])}</div></div>
-<div class="meta">{e(campaign['start_date'])} – {e(campaign['end_date'])}<br>Generated {date.today().isoformat()} · InfluenceSignal v{e(__version__)}</div></header>
+<div class="meta">{e(campaign['start_date'])} – {e(campaign['end_date'])}<br>Generated {date.today().isoformat()} · Influence Signal v{e(__version__)}</div></header>
 {demo}
 <h2>Spend and results</h2><div class="kpis">{kpi_html}</div>
 <h2>Creators</h2>
@@ -268,6 +271,6 @@ th {{ background:#eef2eb; }} td.n {{ text-align:right; white-space:nowrap; }}
 {restricted}
 <div class="disclaimer">{e(DISCLAIMER)} Statuses record what the team answered on the checklist; they are not a finding that any post is lawful.</div>
 <h2>What these numbers can and cannot say</h2><ul class="notes">{notes}</ul>
-<footer>InfluenceSignal · local-first · part of the Signal suite · AGPL-3.0-or-later</footer>
+<footer>Influence Signal · local-first · part of the Signal suite · AGPL-3.0-or-later</footer>
 </main></body></html>
 """

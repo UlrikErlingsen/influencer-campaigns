@@ -13,24 +13,24 @@ from influencesignal.io import (
     validate_results,
 )
 from influencesignal.metrics import GENERAL_NOTES, METRIC_LABELS, RESULT_COLUMNS, row_notes, summarize_results
+from influencesignal.ui import signal_theme as sig
 
 from .ui import (
-    COLORS,
     GOAL_METRIC,
+    KEY,
     demo_note,
     nok,
     num,
-    page_header,
     require_campaign,
     store,
 )
 
 
 def render() -> None:
-    page_header(
+    sig.header(
         "6 · Results",
         "Results and cost per result",
-        "Type in reach, views, clicks, code redemptions and revenue per deliverable, or import a CSV. InfluenceSignal "
+        "Type in reach, views, clicks, code redemptions and revenue per deliverable, or import a CSV. Influence Signal "
         "computes CPM, CPC, cost per redemption and ROAS per creator and for the campaign.",
     )
     campaign = require_campaign()
@@ -67,15 +67,14 @@ def render() -> None:
     else:
         figure = go.Figure(
             go.Bar(
-                x=chart[metric], y=chart["creator_name"], orientation="h", marker_color=COLORS["coral"],
+                x=chart[metric], y=chart["creator_name"], orientation="h", marker_color=sig.roles(KEY)["highlight"],
                 text=[num(value, 2 if metric == "roas" else 0) for value in chart[metric]], textposition="outside",
                 hovertemplate="%{y}: %{x:,.2f}<extra></extra>",
             )
         )
         figure.update_layout(
             height=max(260, 34 * len(chart) + 80), margin=dict(l=10, r=40, t=30, b=30),
-            xaxis_title=METRIC_LABELS[metric], yaxis=dict(autorange="reversed"),
-            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(255,255,255,.6)", font=dict(color=COLORS["ink"]),
+            xaxis_title=METRIC_LABELS[metric], yaxis=dict(autorange="reversed"), template=sig.template(KEY),
             title=dict(text=("Higher is better" if metric == "roas" else "Lower is cheaper") + " — differences between a few posts are mostly noise", font=dict(size=13)),
         )
         st.plotly_chart(figure, width="stretch")
@@ -125,7 +124,5 @@ def render() -> None:
                     db.set_results(int(row["deliverable_id"]), values)
                 st.success(f"Imported results for {len(clean)} deliverables.")
     st.markdown("#### What these numbers can and cannot say")
-    st.markdown(
-        '<div class="boundary">' + "".join(f"<p>{note}</p>" for note in GENERAL_NOTES) + "</div>",
-        unsafe_allow_html=True,
-    )
+    for note in GENERAL_NOTES:
+        sig.note("boundary", note)

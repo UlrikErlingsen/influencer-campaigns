@@ -13,22 +13,22 @@ from influencesignal.io import (
     validate_creators,
 )
 from influencesignal.utm import PLATFORMS
+from influencesignal.ui import signal_theme as sig
 
 from .ui import (
     demo_note,
     float_or_none,
     int_or_none,
-    page_header,
     store,
 )
 
 
 def render() -> None:
-    page_header(
+    sig.header(
         "1 · Creators",
         "Creator roster",
         "Everyone you might work with, across campaigns. Enter figures manually or import a CSV. Follower counts and "
-        "engagement rates are whatever you or the creator report — InfluenceSignal never fetches them.",
+        "engagement rates are whatever you or the creator report — Influence Signal never fetches them.",
     )
     db = store()
     creators = db.creators()

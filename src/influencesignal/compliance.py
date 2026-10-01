@@ -1,6 +1,6 @@
 """Checklist status per deliverable and the gate that guards the *Paid* stage.
 
-Checklist support, not legal advice. Status labels describe what was *recorded*; InfluenceSignal never labels a
+Checklist support, not legal advice. Status labels describe what was *recorded*; Influence Signal never labels a
 post or campaign "compliant".
 """
 
