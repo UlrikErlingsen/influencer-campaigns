@@ -13,3 +13,4 @@ data/
 *.sqlite
 .DS_Store
 Thumbs.db
+.claude/launch.json
