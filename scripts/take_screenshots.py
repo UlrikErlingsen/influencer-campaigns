@@ -44,7 +44,7 @@ def main() -> None:
                 continue
             query = f"?page={slug}" + (f"&campaign={campaign}" if campaign else "")
             page.goto(args.url + "/" + query)
-            page.wait_for_selector(".ps-masthead", timeout=60_000)
+            page.wait_for_selector(".sg-mast", timeout=60_000)
             page.wait_for_timeout(3500)
             page.screenshot(path=str(out / f"{name}.png"))
             print("saved", out / f"{name}.png")

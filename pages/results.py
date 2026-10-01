@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.io as pio
 import streamlit as st
 
 from influencesignal.io import (
@@ -74,10 +75,15 @@ def render() -> None:
         )
         figure.update_layout(
             height=max(260, 34 * len(chart) + 80), margin=dict(l=10, r=40, t=30, b=30),
-            xaxis_title=METRIC_LABELS[metric], yaxis=dict(autorange="reversed"), template=sig.template(KEY),
+            xaxis_title=METRIC_LABELS[metric], yaxis=dict(autorange="reversed", automargin=True),
             title=dict(text=("Higher is better" if metric == "roas" else "Lower is cheaper") + " — differences between a few posts are mostly noise", font=dict(size=13)),
         )
-        st.plotly_chart(figure, width="stretch")
+        # Streamlit 1.64 writes its own font and plot background into the layout even with theme=None, which beats
+        # template values; pin the Signal template's font and backgrounds on the figure so they survive.
+        signal_layout = pio.templates[sig.template(KEY)].layout
+        figure.update_layout(font=signal_layout.font, paper_bgcolor=signal_layout.paper_bgcolor,
+                             plot_bgcolor=signal_layout.plot_bgcolor)
+        sig.chart(KEY, figure)  # per-app Signal template, Streamlit chart theme off
     st.dataframe(
         per_creator,
         hide_index=True,
@@ -124,5 +130,4 @@ def render() -> None:
                     db.set_results(int(row["deliverable_id"]), values)
                 st.success(f"Imported results for {len(clean)} deliverables.")
     st.markdown("#### What these numbers can and cannot say")
-    for note in GENERAL_NOTES:
-        sig.note("boundary", note)
+    sig.note("boundary", "\n\n".join(GENERAL_NOTES))  # one note, one paragraph per caveat

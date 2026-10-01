@@ -127,6 +127,7 @@ def plotly_template(key: str):
         xaxis=dict(gridcolor="rgba(32,30,29,.08)", zerolinecolor=CORE["soft"], linecolor=CORE["line"], ticks=""),
         yaxis=dict(gridcolor="rgba(32,30,29,.08)", zerolinecolor=CORE["soft"], linecolor=CORE["line"], ticks=""),
         legend=dict(orientation="h", y=-0.18, x=0, bgcolor="rgba(0,0,0,0)"),
+        geo=dict(bgcolor="rgba(0,0,0,0)", lakecolor=CORE["bg"], landcolor=CORE["paper"]),
         colorscale=dict(sequential=sequential(key), diverging=DIVERGING),
         hoverlabel=dict(bgcolor=CORE["sidebar"], font=dict(color=CORE["paper"], family="Figtree")),
         margin=dict(l=8, r=8, t=48, b=8),
@@ -146,6 +147,16 @@ def template(key: str) -> str:
     if f"signal-{key}" not in pio.templates:
         plotly_template(key)
     return f"signal-{key}"
+
+
+def chart(app_key: str, fig, **kwargs):
+    """Show a Plotly figure in the Signal look: the app's template, and theme=None so Streamlit's own chart theme
+    does not replace Figtree and the palette. Other keyword arguments go to st.plotly_chart (key=, on_select=...);
+    its return value (the selection state when on_select is set) is passed back."""
+    fig.update_layout(template=template(app_key))
+    kwargs.setdefault("theme", None)
+    kwargs.setdefault("width", "stretch")
+    return st.plotly_chart(fig, **kwargs)
 
 
 def roles(key: str) -> dict:
@@ -187,22 +198,34 @@ a {{ color:var(--sg-a700); }} a:hover {{ color:var(--sg-a800); }}
 [data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] small span {{ color:{c['sidebar_muted']} !important; }}
 [data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] {{
   background:rgba(249,244,237,.06); border:1.5px dashed var(--sg-a600); border-radius:32px; }}
-[data-testid="stSidebar"] button {{ background:rgba(249,244,237,.08); border:1px solid rgba(249,244,237,.22);
+[data-testid="stSidebar"] :is(.stButton,.stDownloadButton,.stLinkButton,.stFormSubmitButton) button {{ background:rgba(249,244,237,.08); border:1px solid rgba(249,244,237,.22);
   border-radius:999px; color:{c['sidebar_text']} !important; }}
-[data-testid="stSidebar"] button * {{ color:{c['sidebar_text']} !important; }}
-[data-testid="stSidebar"] button:hover {{ background:rgba(249,244,237,.14); border-color:var(--sg-a300); }}
+[data-testid="stSidebar"] :is(.stButton,.stDownloadButton,.stLinkButton,.stFormSubmitButton) button * {{ color:{c['sidebar_text']} !important; }}
+[data-testid="stSidebar"] :is(.stButton,.stDownloadButton,.stLinkButton,.stFormSubmitButton) button:hover {{ background:rgba(249,244,237,.14); border-color:var(--sg-a300); }}
 [data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] button {{ background:{c['paper']}; border-color:transparent; }}
 [data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] button * {{ color:{c['text']} !important; }}
 [data-testid="stSidebar"] [role="radiogroup"] label {{ border-radius:999px; padding:.3rem .8rem; margin:0; }}
 [data-testid="stSidebar"] [role="radiogroup"] label:hover {{ background:rgba(249,244,237,.08); }}
 [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {{ background:var(--sg-a700); }}
+[data-testid="stSidebar"] [data-testid="stExpander"] {{ background:rgba(249,244,237,.06); border-color:rgba(249,244,237,.18); }}
+[data-testid="stSidebar"] [data-testid="stExpander"] summary, [data-testid="stSidebar"] [data-testid="stExpander"] summary * {{ color:{c['sidebar_text']} !important; }}
+[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stMarkdownContainer"] * {{ color:{c['sidebar_text']}; }}
+
+/* st.navigation menu (multipage apps and Signal Hub) */
+[data-testid="stSidebarNav"] a {{ border-radius:999px; }}
+[data-testid="stSidebarNav"] a span {{ color:{c['sidebar_text']} !important; }}
+[data-testid="stSidebarNav"] a:hover {{ background:rgba(249,244,237,.08); }}
+[data-testid="stSidebarNav"] a[aria-current="page"] {{ background:var(--sg-a700); }}
+[data-testid="stNavSectionHeader"] span, [data-testid="stSidebarNavSeparator"] {{ color:{c['sidebar_muted']} !important; }}
 
 /* controls — pills */
 .stButton > button, .stDownloadButton > button {{ border-radius:999px; font-weight:700; border:1px solid var(--sg-line);
   background:transparent; color:var(--sg-text); padding:.5rem 1.2rem; }}
 .stButton > button:hover, .stDownloadButton > button:hover {{ background:rgba(32,30,29,.07); border-color:var(--sg-line); color:var(--sg-text); }}
-.stButton > button[kind="primary"] {{ background:var(--sg-a600); color:{c['paper']}; border:0; }}
-.stButton > button[kind="primary"]:hover {{ background:var(--sg-a700); color:{c['paper']}; }}
+.stButton > button[kind="primary"], .stDownloadButton > button[kind="primary"],
+.stFormSubmitButton > button[kind="primary"] {{ background:var(--sg-a600); color:{c['paper']}; border:0; }}
+.stButton > button[kind="primary"]:hover, .stDownloadButton > button[kind="primary"]:hover,
+.stFormSubmitButton > button[kind="primary"]:hover {{ background:var(--sg-a700); color:{c['paper']}; }}
 .stButton > button[kind="primary"]:active {{ background:var(--sg-a800); }}
 [data-baseweb="select"] > div, [data-baseweb="input"], .stTextInput input, .stNumberInput input {{
   border-radius:999px !important; background:var(--sg-paper); }}
@@ -320,6 +343,7 @@ def note(kind: str, markdown_text: str) -> None:
     html = re.sub(r"`([^`]+)`", r"<code>\1</code>", html)
     html = re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)",
                   r'<a href="\2" target="_blank" rel="noopener noreferrer">\1</a>', html)
+    html = re.sub(r"\n{2,}", "<br><br>", html.strip()).replace("\n", " ")  # blank line = new paragraph
     st.markdown(f'<div class="sg-note {kind}"><div>{html}</div></div>', unsafe_allow_html=True)
 
 

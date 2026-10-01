@@ -51,8 +51,10 @@ def test_app_uses_shared_signal_theme_instead_of_pasted_styles() -> None:
     for old_colour in OLD_COLOURS:
         assert old_colour not in sources.lower(), old_colour
         assert old_colour not in (ROOT / "src" / "influencesignal" / "report.py").read_text(encoding="utf-8").lower()
-    # Charts use the per-app Plotly template, not the process-wide default.
-    assert "template=sig.template(KEY)" in (ROOT / "pages" / "results.py").read_text(encoding="utf-8")
+    # Charts use the per-app Plotly template (via sig.chart), not the process-wide default or Streamlit's theme.
+    results = (ROOT / "pages" / "results.py").read_text(encoding="utf-8")
+    assert "sig.chart(KEY, figure)" in results
+    assert "st.plotly_chart" not in sources
 
 
 def test_display_name_has_a_space_in_user_facing_text() -> None:
@@ -73,3 +75,4 @@ def test_synced_theme_assets_and_config() -> None:
     for size in ("", "-32", "-64"):
         assert (UI / "assets" / "marks" / f"influencesignal-mark{size}.{'svg' if not size else 'png'}").exists()
     assert (UI / "__init__.py").exists()
+
