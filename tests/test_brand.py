@@ -76,3 +76,52 @@ def test_synced_theme_assets_and_config() -> None:
         assert (UI / "assets" / "marks" / f"influencesignal-mark{size}.{'svg' if not size else 'png'}").exists()
     assert (UI / "__init__.py").exists()
 
+
+def test_readme_matches_suite_information_architecture() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    # Signal README template order (sections without content for this app are left out, never reordered).
+    sections = [
+        "## Read this first",
+        "## Scope",
+        "## Try the demo in three minutes",
+        "## Data contract",
+        "## Methods",
+        "## Decision statuses",
+        "## Exports",
+        "## Run locally",
+        "## Privacy",
+        "## Development",
+        "## Where this fits in Signal",
+        "## References",
+        "## Originality and license",
+    ]
+    positions = [readme.find(f"\n{heading}\n") for heading in sections]
+    assert all(position >= 0 for position in positions), dict(zip(sections, positions))
+    assert positions == sorted(positions)
+    assert readme.startswith('<p align="center">\n  <img src="assets/influencesignal-banner.png"')
+    assert "influencesignal-banner.svg" not in readme
+    assert "Signal-Market-728157" in readme  # family badge in the Market 600 colour
+    assert "github.com/UlrikErlingsen/influencer-campaigns/actions" in readme  # tests badge
+    assert "**Influence Signal**" in readme
+    assert '<img src="assets/influencesignal-mark-64.png"' in readme  # suite footer
+    assert "Creator" + " Signal" not in readme
+    assert "Checklist support, not legal advice." in readme
+    assert "not legal clearance or a trademark opinion" in readme
+    assert "represent no real person, brand or result" in readme
+    for path in ("assets/influencesignal-banner.png", "assets/influencesignal-mark-64.png",
+                 "assets/influencesignal-social.png", "assets/influencesignal-mark.svg"):
+        assert (ROOT / path).exists(), path
+    for path in ("assets/influencesignal-banner.svg", "assets/influencesignal-lockup-dark.svg"):
+        assert not (ROOT / path).exists(), path
+
+
+def test_issue_templates_name_the_product_and_protect_creator_data() -> None:
+    folder = ROOT / ".github" / "ISSUE_TEMPLATE"
+    bug = (folder / "bug_report.yml").read_text(encoding="utf-8")
+    idea = (folder / "feature_request.yml").read_text(encoding="utf-8")
+    config = (folder / "config.yml").read_text(encoding="utf-8")
+    assert "Influence Signal" in bug and "Influence Signal" in idea
+    assert "Never attach real creator data" in bug
+    assert "required: true" in bug
+    assert "blank_issues_enabled: false" in config
+    assert "influencer-campaigns/blob/main/SECURITY.md" in config

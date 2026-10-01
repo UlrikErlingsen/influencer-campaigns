@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest a useful improvement to the campaign workflow or checklist
+title: "[Idea]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem should Influence Signal solve?
+      description: Start with the brand or agency's campaign decision, not the proposed UI.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What would a useful outcome look like?
+    validations:
+      required: true
+  - type: textarea
+    id: method
+    attributes:
+      label: Rule, method or source
+      description: For a checklist rule, link the official source (for example Forbrukertilsynet or Lovdata). For a metric, link an authoritative definition. The checklist is support, not legal advice.
+  - type: textarea
+    id: data
+    attributes:
+      label: Required input data
+      description: Describe columns or data shape using invented examples only.

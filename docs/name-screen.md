@@ -27,6 +27,8 @@ Findings from the screen:
 
 On 1 October 2026 Ulrik chose **InfluenceSignal**, and the project was renamed the same day (package `influencesignal`, environment variables `INFLUENCESIGNAL_*`, database file `influencesignal.db`). The repository name `influencer-campaigns` is unchanged. The findings above about CreatorSignal are kept as the record of why the name changed.
 
+In user-facing text the name is written **Influence Signal**, with a space, like the other Signal apps (Signal brand refresh, 1 October 2026); technical identifiers keep the one-word form `influencesignal`. The screen above searched both spellings (`"InfluenceSignal" OR "Influence Signal"`). This is a spelling convention, not a new screen or clearance.
+
 The formal checks under *Recommendation* below still apply to InfluenceSignal before commercial use.
 
 ## Practical assessment (CreatorSignal)

@@ -1,6 +1,6 @@
-# CLAUDE.md — InfluenceSignal (repo: influencer-campaigns)
+# CLAUDE.md — Influence Signal (repo: influencer-campaigns)
 
-You are building **InfluenceSignal**, a new product in Ulrik Erlingsen's **Signal** suite
+You are building **Influence Signal** (package `influencesignal`), a new product in Ulrik Erlingsen's **Signal** suite
 (open-source, local-first marketing tools; see sibling repos such as `brand-tracking`
 = TrackSignal for house style). This repo starts empty except for this file, a README stub,
 LICENSE and .gitignore. Build v1 from this brief.

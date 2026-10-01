@@ -1,10 +1,10 @@
 # Privacy
 
-InfluenceSignal does not implement telemetry, advertising, user accounts, tracking pixels, external AI calls, social-network API calls or any outbound data upload. Everything you enter is stored in one SQLite file on the computer that runs the app (by default `data/influencesignal.db`, which is excluded from git).
+Influence Signal does not implement telemetry, advertising, user accounts, tracking pixels, external AI calls, social-network API calls or any outbound data upload. Everything you enter is stored in one SQLite file on the computer that runs the app (by default `data/influencesignal.db`, which is excluded from git).
 
 ## You are the data controller
 
-Creator names, handles, e-mail addresses, phone numbers, fees and notes are personal data under the GDPR (personopplysningsloven). When you store them in InfluenceSignal, **you — or the organisation you work for — are the data controller**. That means you decide and are responsible for:
+Creator names, handles, e-mail addresses, phone numbers, fees and notes are personal data under the GDPR (personopplysningsloven). When you store them in Influence Signal, **you — or the organisation you work for — are the data controller**. That means you decide and are responsible for:
 
 - the lawful basis for keeping each creator's data (for example a contract, or a legitimate interest you have assessed);
 - telling creators what you store and why, and answering access, correction and deletion requests;
@@ -15,7 +15,7 @@ The project maintainers never receive your data and are not a processor for it.
 
 ## Deployments
 
-If someone runs InfluenceSignal on a server, that operator controls infrastructure logs, retention, authentication, backups and network access and must document those practices separately. Do not enter creator data into a deployment you do not control.
+If someone runs Influence Signal on a server, that operator controls infrastructure logs, retention, authentication, backups and network access and must document those practices separately. Do not enter creator data into a deployment you do not control.
 
 ## Demo data
 
