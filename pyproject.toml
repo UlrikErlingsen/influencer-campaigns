@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "creatorsignal"
+version = "1.0.0.dev0"
+description = "CreatorSignal: open, local-first influencer campaign manager for the Norwegian market"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "AGPL-3.0-or-later"
+authors = [{ name = "Ulrik Erlingsen" }]
+keywords = [
+  "influencer marketing",
+  "influencer campaigns",
+  "creator marketing",
+  "advertising compliance",
+  "Norway",
+  "streamlit",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Office/Business",
+]
+dependencies = [
+  "defusedxml>=0.7,<1",
+  "openpyxl>=3.1,<4",
+  "pandas>=2.0,<3",
+  "plotly>=5.18,<8",
+  "pyyaml>=6,<7",
+  "streamlit>=1.38,<2",
+]
+
+[project.optional-dependencies]
+test = [
+  "build>=1.2,<2",
+  "pytest>=8,<10",
+  "ruff>=0.8,<1",
+]
+
+[project.urls]
+Homepage = "https://github.com/UlrikErlingsen/influencer-campaigns"
+Source = "https://github.com/UlrikErlingsen/influencer-campaigns"
+Issues = "https://github.com/UlrikErlingsen/influencer-campaigns/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+creatorsignal = ["rules/*.yaml"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+"app.py" = ["E402"]
