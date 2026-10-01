@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from creatorsignal.demo import load_demo
-from creatorsignal.rules import load_rules
-from creatorsignal.storage import Store
+from influencesignal.demo import load_demo
+from influencesignal.rules import load_rules
+from influencesignal.storage import Store
 
 
 @pytest.fixture(scope="session")

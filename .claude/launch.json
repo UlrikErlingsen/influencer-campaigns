@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "creatorsignal",
+      "name": "influencesignal",
       "runtimeExecutable": ".venv/Scripts/python.exe",
       "runtimeArgs": ["-m", "streamlit", "run", "app.py", "--server.headless=true", "--server.address=127.0.0.1", "--server.port=8590", "--browser.gatherUsageStats=false"],
       "port": 8590

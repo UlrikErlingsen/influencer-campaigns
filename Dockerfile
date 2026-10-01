@@ -4,14 +4,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     ARROW_DEFAULT_MEMORY_POOL=system \
-    CREATORSIGNAL_DATA_DIR=/data
+    INFLUENCESIGNAL_DATA_DIR=/data
 
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-RUN useradd --create-home --uid 10001 creatorsignal && mkdir -p /data && chown creatorsignal /data
-USER creatorsignal
+RUN useradd --create-home --uid 10001 influencesignal && mkdir -p /data && chown influencesignal /data
+USER influencesignal
 VOLUME ["/data"]
 
 EXPOSE 8590

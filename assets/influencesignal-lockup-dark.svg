@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 372 64" role="img" aria-labelledby="title">
+  <title id="title">InfluenceSignal</title>
+  <rect width="64" height="64" rx="16" fill="#173C3A" stroke="#83D2B4" stroke-opacity=".55" stroke-width="2"/>
+  <g fill="none" stroke="#83D2B4" stroke-width="2" stroke-linecap="round" opacity=".6">
+    <path d="M41 17a17 17 0 0 1 0 24"/><path d="M47 12a25 25 0 0 1 0 34"/>
+  </g>
+  <circle cx="27" cy="24" r="7.5" fill="none" stroke="#F8F5ED" stroke-width="3.5"/>
+  <path d="M13 47c2-7.5 7.5-11.5 14-11.5s12 4 14 11.5" fill="none" stroke="#F8F5ED" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="47.5" cy="47.5" r="9" fill="#D95B40"/>
+  <path d="M43.5 47.5l3 3 5.5-6" fill="none" stroke="#F8F5ED" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="80" y="43" fill="#F8F5ED" font-family="Inter,Arial,sans-serif" font-size="34" font-weight="800" letter-spacing="-1.4">Influence<tspan fill="#F2C66D">Signal</tspan></text>
+</svg>

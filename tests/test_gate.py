@@ -2,7 +2,7 @@
 
 import pytest
 
-from creatorsignal.compliance import (
+from influencesignal.compliance import (
     STATUS_COMPLETE,
     STATUS_ISSUE,
     STATUS_MISSING,
@@ -12,8 +12,8 @@ from creatorsignal.compliance import (
     checklist_status,
     paid_gate,
 )
-from creatorsignal.errors import GateBlocked
-from creatorsignal.storage import STAGES
+from influencesignal.errors import GateBlocked
+from influencesignal.storage import STAGES
 
 PUBLISHED = {"platform": "instagram", "format": "reel", "published_date": "2026-09-10", "shows_person": True}
 

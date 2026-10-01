@@ -139,14 +139,14 @@ DELIVERABLE_EXPORT_COLUMNS = [
 def build_xlsx(report: CampaignReport) -> bytes:
     campaign = report.campaign
     read_me = [
-        ("report", "CreatorSignal campaign report"),
+        ("report", "InfluenceSignal campaign report"),
         ("campaign", campaign["name"]),
         ("brand", campaign["brand"]),
         ("goal", campaign["goal"]),
         ("period", f"{campaign['start_date']} – {campaign['end_date']}"),
         ("budget_nok", campaign["budget_nok"]),
         ("generated", date.today().isoformat()),
-        ("creatorsignal_version", __version__),
+        ("influencesignal_version", __version__),
         ("rules_fetched", report.rules.fetched),
         ("compliance_disclaimer", DISCLAIMER),
         ("restricted_category_flags", ", ".join(report.restricted) or "none"),
@@ -228,13 +228,13 @@ def build_html(report: CampaignReport) -> str:
         restricted = (
             "<div class='flag'><b>Restricted category flagged:</b> "
             + ", ".join(e(categories[key].label) for key in report.restricted)
-            + ". Stricter Norwegian rules apply. CreatorSignal flags this only and makes no assessment.</div>"
+            + ". Stricter Norwegian rules apply. InfluenceSignal flags this only and makes no assessment.</div>"
         )
     demo = f"<div class='demo'>{e(DEMO_NOTICE)}</div>" if report.is_demo else ""
     notes = "".join(f"<li>{e(note)}</li>" for note in report.notes)
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{e(campaign['name'])} — CreatorSignal report</title>
+<title>{e(campaign['name'])} — InfluenceSignal report</title>
 <style>
 :root {{ --ink:#17322e; --coral:#d95b40; --mint:#83d2b4; --gold:#f2c66d; --paper:#f8f5ed; --line:#d9ded8; }}
 * {{ box-sizing:border-box; }}
@@ -257,7 +257,7 @@ th {{ background:#eef2eb; }} td.n {{ text-align:right; white-space:nowrap; }}
 </style></head>
 <body><main>
 <header><div><h1>{e(campaign['name'])}</h1><div>{e(campaign['brand'])} · goal: {e(campaign['goal'])}</div></div>
-<div class="meta">{e(campaign['start_date'])} – {e(campaign['end_date'])}<br>Generated {date.today().isoformat()} · CreatorSignal v{e(__version__)}</div></header>
+<div class="meta">{e(campaign['start_date'])} – {e(campaign['end_date'])}<br>Generated {date.today().isoformat()} · InfluenceSignal v{e(__version__)}</div></header>
 {demo}
 <h2>Spend and results</h2><div class="kpis">{kpi_html}</div>
 <h2>Creators</h2>
@@ -268,6 +268,6 @@ th {{ background:#eef2eb; }} td.n {{ text-align:right; white-space:nowrap; }}
 {restricted}
 <div class="disclaimer">{e(DISCLAIMER)} Statuses record what the team answered on the checklist; they are not a finding that any post is lawful.</div>
 <h2>What these numbers can and cannot say</h2><ul class="notes">{notes}</ul>
-<footer>CreatorSignal · local-first · part of the Signal suite · AGPL-3.0-or-later</footer>
+<footer>InfluenceSignal · local-first · part of the Signal suite · AGPL-3.0-or-later</footer>
 </main></body></html>
 """

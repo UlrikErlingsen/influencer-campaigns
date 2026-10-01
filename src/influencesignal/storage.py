@@ -36,7 +36,7 @@ GOALS = ("awareness", "traffic", "sales")
 FORMATS = ("reel", "story", "post", "video")
 CATEGORIES = ("general", "alcohol", "gambling", "tobacco_nicotine")
 DEFAULT_DATA_DIR = Path("data")
-DB_NAME = "creatorsignal.db"
+DB_NAME = "influencesignal.db"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
@@ -118,7 +118,7 @@ def _now() -> str:
 
 
 def default_db_path() -> Path:
-    folder = os.environ.get("CREATORSIGNAL_DATA_DIR", "").strip()
+    folder = os.environ.get("INFLUENCESIGNAL_DATA_DIR", "").strip()
     return (Path(folder) if folder else DEFAULT_DATA_DIR) / DB_NAME
 
 

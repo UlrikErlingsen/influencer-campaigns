@@ -1,4 +1,4 @@
-"""CreatorSignal: open, local-first influencer campaign manager for the Norwegian market.
+"""InfluenceSignal: open, local-first influencer campaign manager for the Norwegian market.
 
 Public API. The package never imports Streamlit: the UI (``app.py``) calls these functions, so another front end
 (for example a future merged Signal Hub) can reuse the same logic and storage.

@@ -2,11 +2,11 @@ from io import BytesIO
 
 from openpyxl import load_workbook
 
-from creatorsignal import DISCLAIMER
-from creatorsignal.compliance import STATUS_ISSUE, checklist_status
-from creatorsignal.demo import DEMO_NOTICE, demo_creators, load_demo
-from creatorsignal.report import build_html, build_report, build_xlsx
-from creatorsignal.storage import STAGES, Store
+from influencesignal import DISCLAIMER
+from influencesignal.compliance import STATUS_ISSUE, checklist_status
+from influencesignal.demo import DEMO_NOTICE, demo_creators, load_demo
+from influencesignal.report import build_html, build_report, build_xlsx
+from influencesignal.storage import STAGES, Store
 
 
 def _snapshot(store: Store) -> tuple:

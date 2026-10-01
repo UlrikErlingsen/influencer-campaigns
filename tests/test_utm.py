@@ -2,8 +2,8 @@ from urllib.parse import parse_qsl, urlsplit
 
 import pytest
 
-from creatorsignal.errors import DataProblem
-from creatorsignal.utm import build_tracked_url, creator_token, slugify, utm_params
+from influencesignal.errors import DataProblem
+from influencesignal.utm import build_tracked_url, creator_token, slugify, utm_params
 
 
 def test_scheme_is_exactly_as_specified() -> None:

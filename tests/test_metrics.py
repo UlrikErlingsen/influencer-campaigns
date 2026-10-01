@@ -3,7 +3,7 @@ import math
 import pandas as pd
 import pytest
 
-from creatorsignal.metrics import (
+from influencesignal.metrics import (
     GENERAL_NOTES,
     cost_per_redemption,
     cpc,

@@ -1,4 +1,4 @@
-# CLAUDE.md — InfluenceSignal (repo: influencer-campaigns)
+# AGENTS.md — InfluenceSignal (repo: influencer-campaigns)
 
 You are building **InfluenceSignal**, a new product in Ulrik Erlingsen's **Signal** suite
 (open-source, local-first marketing tools; see sibling repos such as `brand-tracking`

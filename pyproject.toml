@@ -3,9 +3,9 @@ requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "creatorsignal"
+name = "influencesignal"
 version = "1.0.0.dev0"
-description = "CreatorSignal: open, local-first influencer campaign manager for the Norwegian market"
+description = "InfluenceSignal: open, local-first influencer campaign manager for the Norwegian market"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-or-later"
@@ -33,7 +33,7 @@ dependencies = [
   "pandas>=2.0,<3",
   "plotly>=5.18,<8",
   "pyyaml>=6,<7",
-  "streamlit>=1.38,<2",
+  "streamlit>=1.50,<2",
 ]
 
 [project.optional-dependencies]
@@ -52,10 +52,10 @@ Issues = "https://github.com/UlrikErlingsen/influencer-campaigns/issues"
 where = ["src"]
 
 [tool.setuptools.package-data]
-creatorsignal = ["rules/*.yaml"]
+influencesignal = ["rules/*.yaml"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 testpaths = ["tests"]
 addopts = "-q"
 

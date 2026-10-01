@@ -3,8 +3,8 @@ import copy
 import pytest
 import yaml
 
-from creatorsignal.errors import DataProblem
-from creatorsignal.rules import DEFAULT_RULES_PATH, load_rules, parse_rules
+from influencesignal.errors import DataProblem
+from influencesignal.rules import DEFAULT_RULES_PATH, load_rules, parse_rules
 
 
 def _document() -> dict:

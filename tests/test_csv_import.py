@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
 
-from creatorsignal.errors import DataProblem
-from creatorsignal.io import (
+from influencesignal.errors import DataProblem
+from influencesignal.io import (
     FYLKER,
     creator_template,
     dataframe_csv_bytes,
