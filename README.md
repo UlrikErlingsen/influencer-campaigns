@@ -12,7 +12,7 @@
 
 <p align="center"><strong>Run Norwegian influencer campaigns in one local app — pipeline, codes, cost per result, and an advertising-label checklist on every post.</strong></p>
 
-> **Status:** v1 in development (`1.0.0.dev0`). Private build; not yet released.
+> **Status:** version 1.0.0 (2 October 2026). See the [changelog](CHANGELOG.md).
 >
 > **Name status:** developed under the working name CreatorSignal and renamed to Influence Signal (package `influencesignal`) on 1 October 2026, after a basic screen found an active product using the exact name CreatorSignal. The same screen found no product, package or GitHub repository named InfluenceSignal. That is encouraging but is not legal clearance or a trademark opinion; see [the name screen](docs/name-screen.md).
 
@@ -33,7 +33,7 @@ Everything runs on your own computer with open-source Python packages and saves 
 
 ## Scope
 
-**Version 1.0 (in development) supports:**
+**Version 1.0 supports:**
 
 | Area | What you get |
 |---|---|
@@ -162,9 +162,13 @@ docker run --rm -p 8590:8590 -v influencesignal-data:/data influencesignal
 
 Then open http://127.0.0.1:8590. The container runs as a non-root user, stores the database in the `/data` volume and includes a health check. It has no authentication — do not expose it beyond your own machine without adding access control (see [SECURITY.md](SECURITY.md)).
 
+### Inside Signal Hub
+
+[Signal Hub](https://github.com/UlrikErlingsen/signal-hub) imports the package and calls `influencesignal.ui.render()` with `SIGNAL_HUB=1`. In that mode each browser session gets its own **in-memory** SQLite workspace, seeded with the fictional demo: nothing is read from or written to disk, an existing local workspace is never opened, the database-folder settings and the `INFLUENCESIGNAL_RULES` override are off (the app says so on *Settings & data*), and the app makes no network requests. Everything typed in the Hub is gone when the tab closes, so use the local app for real campaigns. Checklist support, not legal advice — in the Hub as everywhere else.
+
 ## Privacy
 
-Creator names, contacts, fees and notes are processed and stored only in the SQLite file on the computer that runs the app; you are the data controller for them. Whoever runs Influence Signal on a server is responsible for that deployment's access control, logs, backups and retention. See [PRIVACY.md](PRIVACY.md).
+Creator names, contacts, fees and notes are processed and stored only in the SQLite file on the computer that runs the app (in Signal Hub: only in that browser session's memory); you are the data controller for them. Whoever runs Influence Signal on a server is responsible for that deployment's access control, logs, backups and retention. See [PRIVACY.md](PRIVACY.md).
 
 ## Development
 
@@ -175,15 +179,15 @@ python -m ruff check .
 python -m build
 ```
 
-The suite covers metric calculations, the UTM builder, rule loading and validation, the "cannot mark Paid without a checklist" gate, CSV import validation, the deterministic demo, report exports, every Streamlit page, the Signal brand shell, the architecture rules, and an end-to-end run through the UI from an empty workspace (campaign → creator → shortlist → deliverable → publish → checklist → Paid → results → report). README screenshots are made with [`scripts/take_screenshots.py`](scripts/take_screenshots.py).
+The suite covers metric calculations, the UTM builder, rule loading and validation, the "cannot mark Paid without a checklist" gate, CSV import validation, the deterministic demo, report exports, every Streamlit page, the Signal brand shell, the architecture rules, the Signal Hub contract (`render()` from the packaged files, namespaced keys, and hub mode writing no file and making no network call), and an end-to-end run through the UI from an empty workspace (campaign → creator → shortlist → deliverable → publish → checklist → Paid → results → report). README screenshots are made with [`scripts/take_screenshots.py`](scripts/take_screenshots.py).
 
 **Architecture.**
 
-- `src/influencesignal/` — all logic, data models and storage, pip-installable, **no Streamlit imports** except in `src/influencesignal/ui/`, which holds the shared Signal theme synced from Signal Hub (`signal_theme.py` and the app marks; edit them in Signal Hub, not here). Public API in [`__init__.py`](src/influencesignal/__init__.py).
-- `src/influencesignal/storage.py` — the only module that touches SQLite, so the backend can be swapped.
-- `pages/` — one module per page, each exposing `render()`; `pages/ui.py` holds the shared shell (workspace, notes, pipeline cards, display helpers) on top of the Signal theme. Pages only call package functions, so a future Signal Hub can import them.
-- `app.py` — entry point: page config and theme, wires the pages into `st.navigation`, renders the sidebar, masthead and footer, and runs the selected page. `?page=<slug>` opens a page directly (e.g. `/?page=compliance&campaign=fjellbrus-hostfjell-2026`); each page also has its own path such as `/compliance`.
-- `tests/test_architecture.py` fails if Streamlit is imported outside `app.py`, `pages/` and `src/influencesignal/ui/`, if SQLite leaks outside `storage.py`, or if a page module lacks `render()`.
+- `src/influencesignal/` — all logic, data models and storage, pip-installable, **no Streamlit imports** except in `src/influencesignal/ui/`. Public API in [`__init__.py`](src/influencesignal/__init__.py). Streamlit and Plotly are in the `ui` extra (`pip install "influencesignal[ui]"`); `requirements.txt` installs everything.
+- `src/influencesignal/storage.py` — the only module that touches SQLite, so the backend can be swapped. `Store(":memory:")` is a private in-memory workspace (used by Signal Hub).
+- `src/influencesignal/ui/` — the Streamlit UI: `pages/` (one module per page, each exposing `render()`), `shell.py` (workspace, namespaced keys via `k()`, notes, pipeline cards, display helpers), `app.py` (page list, sidebar, masthead, footer and `render()`), and `__init__.py` with `APP_INFO` and `render()` for Signal Hub. `signal_theme.py` and the marks are synced from Signal Hub; edit them there, not here.
+- `app.py` — standalone entry point: page config, wires the same pages into `st.navigation`, renders the sidebar, masthead and footer, and runs the selected page. `?page=<slug>` opens a page directly (e.g. `/?page=compliance&campaign=fjellbrus-hostfjell-2026`); each page also has its own path such as `/compliance`.
+- `tests/test_architecture.py` fails if Streamlit is imported outside `app.py` and `src/influencesignal/ui/`, if SQLite leaks outside `storage.py`, or if a page module lacks `render()`; `tests/test_hub_contract.py` checks the Signal Hub contract.
 
 ## Where this fits in Signal
 
