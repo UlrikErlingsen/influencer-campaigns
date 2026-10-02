@@ -81,7 +81,7 @@ represent no real person, brand or result — state this on screen and in the RE
 - Python 3.10+, **Streamlit** app (`app.py`), package in `src/influencesignal/`, tests in `tests/`.
 - No Streamlit import anywhere under `src/influencesignal/` **except `src/influencesignal/ui/`**, which holds
   the Signal theme synced from Signal Hub (`ui/signal_theme.py`, `ui/assets/marks/`; never edit the synced files).
-  Streamlit code otherwise lives in `app.py` and `pages/`. `tests/test_architecture.py` enforces this.
+  Streamlit code otherwise lives in `app.py` (thin standalone entry) and `src/influencesignal/ui/` (shell and pages). `tests/test_architecture.py` enforces this.
 - Display name in user-facing text is **Influence Signal** (with a space); technical identifiers stay
   `influencesignal` / `INFLUENCESIGNAL_*`. Never use the old working name as a display name.
 - Persistence: **SQLite** file in a user-chosen local folder (default `./data/influencesignal.db`,
