@@ -5,7 +5,8 @@ type: software
 authors:
   - family-names: Erlingsen
     given-names: Ulrik
-version: 1.0.0.dev0
+version: 1.0.0
+date-released: 2026-10-02
 license: AGPL-3.0-or-later
 repository-code: "https://github.com/UlrikErlingsen/influencer-campaigns"
 abstract: "An open, local-first application for running influencer campaigns in Norway: creator pipeline, deliverables with tracked links and codes, cost-per-result metrics, and a sourced checklist for Norwegian advertising-labelling rules (checklist support, not legal advice)."

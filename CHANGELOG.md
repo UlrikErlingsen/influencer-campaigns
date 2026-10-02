@@ -1,6 +1,17 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.0] - 2026-10-02
+
+First release of **Influence Signal**, the Signal suite's local-first influencer campaign manager for the Norwegian market: creator roster, campaigns, an eight-stage pipeline, deliverables with tracked links and codes, a sourced Norwegian advertising-label checklist with a Paid gate, results at cost per result, and an XLSX + one-page HTML report. Checklist support, not legal advice.
+
+### Signal Hub
+
+- `influencesignal.ui` exposes `APP_INFO` and `render()`, which draws the whole app on the current page (theme, sidebar lockup, a namespaced page radio over the same page functions the standalone app uses, active-campaign selector, masthead, the selected page with the friendly error, footer). It never calls `st.set_page_config`, `st.navigation`, `st.Page`, `st.logo` or `st.stop`.
+- The pages moved from `pages/` to `src/influencesignal/ui/pages/` and the shared shell to `ui/shell.py`, so a packaged install has them; `pages/` is gone. The standalone `app.py` keeps its `st.navigation` menu, URL paths and `?page=` deep links over the same page list.
+- Every session-state, form and widget key is namespaced with the slug (`influence:…`) through one `k()` helper.
+- Hub mode (`SIGNAL_HUB=1`): each session works in a private in-memory SQLite database seeded with the fictional demo (`Store(":memory:")`). Nothing is read from or written to disk, an existing local workspace is never opened, the `INFLUENCESIGNAL_RULES` override is ignored, and the database-folder settings are hidden with a note explaining why. Welcome, Settings and the sidebar say the Hub workspace is in memory only. Standalone behaviour is unchanged.
+- Streamlit and Plotly moved to the `ui` extra (also in `test`); `requirements.txt` still installs everything.
+- New `tests/test_hub_contract.py`: `APP_INFO`, Streamlit/Plotly only under `ui/`, a fresh-interpreter core import, `render()` from the packaged files alone, namespaced keys at runtime and in the source, and hub-mode tests (temporary cwd and home stay empty, an existing local database is neither read nor changed, socket/urllib/requests/feedparser calls are refused, workspaces are per session, database settings hidden).
 
 ### Signal brand refresh
 
@@ -13,11 +24,9 @@
 - Architecture rule amended: no Streamlit under `src/influencesignal/` **except `src/influencesignal/ui/`** (guard test, CLAUDE.md, AGENTS.md, CONTRIBUTING.md, PR template). `influencesignal.ui` ships its marks as package data.
 - Added GitHub issue templates (bug report, feature request, config) and brand tests (theme shell, no old palette, display name, synced config and assets, README order, issue templates).
 
-## 1.0.0.dev0 — unreleased
-
-First build of **InfluenceSignal**, the Signal suite's influencer campaign manager for the Norwegian market. Developed under the working name CreatorSignal; renamed before any release (see *Naming*).
-
 ### Application
+
+Developed under the working name CreatorSignal; renamed before any release (see *Naming*).
 
 - Creator roster with platform handles (Instagram, TikTok, YouTube, Snapchat), followers, engagement rate, niche tags, county (the 15 fylker from 2024), contact, rate card and notes; validated CSV/XLSX import and CSV export.
 - Campaigns with brand, goal, budget (NOK), dates, brief, deliverables template, landing page and category.

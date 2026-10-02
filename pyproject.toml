@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "influencesignal"
-version = "1.0.0.dev0"
+version = "1.0.0"
 description = "Influence Signal: open, local-first influencer campaign manager for the Norwegian market"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -19,7 +19,7 @@ keywords = [
   "streamlit",
 ]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 5 - Production/Stable",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",

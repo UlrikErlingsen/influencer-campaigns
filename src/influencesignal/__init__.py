@@ -5,7 +5,7 @@ synced Signal theme) the package never imports Streamlit: the UI calls these fun
 reuse the same logic and storage.
 """
 
-__version__ = "1.0.0.dev0"
+__version__ = "1.0.0"
 
 DISCLAIMER = "Checklist support, not legal advice."
 
