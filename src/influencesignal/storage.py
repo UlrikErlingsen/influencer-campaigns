@@ -1,5 +1,8 @@
 """Local SQLite persistence. One file per workspace; nothing leaves the machine.
 
+``Store(":memory:")`` keeps the workspace in one private in-memory database instead (Signal Hub uses this, one
+per browser session, so nothing is written to disk).
+
 The Paid gate is enforced here, not only in the UI: ``move_engagement`` refuses to move a creator to *Paid*
 or *Reported* unless every deliverable passes ``compliance.paid_gate``.
 """
@@ -11,6 +14,7 @@ from datetime import datetime, timezone
 import os
 from pathlib import Path
 import sqlite3
+import threading
 from typing import Iterator
 
 import pandas as pd
@@ -37,6 +41,7 @@ FORMATS = ("reel", "story", "post", "video")
 CATEGORIES = ("general", "alcohol", "gambling", "tobacco_nicotine")
 DEFAULT_DATA_DIR = Path("data")
 DB_NAME = "influencesignal.db"
+MEMORY = ":memory:"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
@@ -145,16 +150,34 @@ def _clean_number(value: object) -> float | None:
 
 
 class Store:
-    """Thin data-access layer over one SQLite file."""
+    """Thin data-access layer over one SQLite file (or one private in-memory database)."""
 
     def __init__(self, path: str | Path) -> None:
+        self.in_memory = str(path) == MEMORY
         self.path = Path(path)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._memory: sqlite3.Connection | None = None
+        self._lock = threading.RLock()
+        if self.in_memory:
+            # One connection for the store's lifetime: an in-memory database lives only as long as its connection.
+            self._memory = sqlite3.connect(MEMORY, check_same_thread=False)
+            self._memory.row_factory = sqlite3.Row
+            self._memory.execute("PRAGMA foreign_keys = ON")
+        else:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as connection:
             connection.executescript(SCHEMA)
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
+        if self._memory is not None:
+            with self._lock:
+                try:
+                    yield self._memory
+                    self._memory.commit()
+                except Exception:
+                    self._memory.rollback()
+                    raise
+            return
         connection = sqlite3.connect(self.path)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
