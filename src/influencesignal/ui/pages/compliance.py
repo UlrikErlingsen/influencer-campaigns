@@ -20,7 +20,8 @@ from influencesignal.compliance import (
 )
 from influencesignal.ui import signal_theme as sig
 
-from .ui import (
+from ..shell import (
+    k,
     STATUS_ICONS,
     current_rules,
     demo_note,
@@ -103,12 +104,12 @@ def render() -> None:
         return
     labels = {int(r["id"]): f"#{r['id']} · {r['creator']} · {r['platform']} {r['format']} — {r['status']}" for r in published}
     default = next((i for i, r in enumerate(published) if STATUS_ISSUE in r["status"]), 0)
-    chosen = st.selectbox("Open checklist for", list(labels), index=default, format_func=labels.get, key="checklist_deliverable")
+    chosen = st.selectbox("Open checklist for", list(labels), index=default, format_func=labels.get, key=k("checklist_deliverable"))
     deliverable = db.deliverable(int(chosen))
     answers = db.answers(int(chosen))
     st.markdown(f"#### Checklist · #{chosen}")
     legal_note()
-    with st.form(f"checklist_{chosen}"):
+    with st.form(k(f"checklist_{chosen}")):
         new_answers = {}
         for rule in applicable_rules(deliverable, campaign, rules):
             with st.container(border=True):
@@ -119,7 +120,7 @@ def render() -> None:
                 current = answers.get(rule.id, "")
                 new_answers[rule.id] = st.radio(
                     "Answer", choices, index=choices.index(current) if current in choices else 0,
-                    format_func=names.get, horizontal=True, key=f"ans_{chosen}_{rule.id}", label_visibility="collapsed",
+                    format_func=names.get, horizontal=True, key=k(f"ans_{chosen}_{rule.id}"), label_visibility="collapsed",
                 )
                 with st.expander("Source, quote and guidance"):
                     if rule.help_en:
@@ -136,7 +137,7 @@ def render() -> None:
                         st.markdown(f"[{category.label}]({category.url}) — {category.note}")
                         if category.quote:
                             st.markdown(f"> «{category.quote}»")
-        if st.form_submit_button("Save checklist", type="primary"):
+        if st.form_submit_button("Save checklist", type="primary", key=k(f"save_checklist_{chosen}")):
             for rule_id, answer in new_answers.items():
                 db.set_answer(int(chosen), rule_id, answer or None)
             st.success("Checklist saved.")
@@ -150,12 +151,12 @@ def render() -> None:
         st.info("An override reason is recorded: this deliverable will not block the Paid stage. Open items stay visible in the report.")
     else:
         st.warning("This deliverable blocks the Paid stage:\n\n" + "\n".join(f"- {reason}" for reason in gate.reasons))
-    with st.form(f"override_{chosen}"):
+    with st.form(k(f"override_{chosen}")):
         reason = st.text_area(
             "Override reason (lets the creator move to Paid with open items — written into the report)",
-            deliverable["override_reason"] or "", height=90,
+            deliverable["override_reason"] or "", height=90, key=k(f"override_text_{chosen}"),
             help=f"At least {MIN_OVERRIDE_CHARS} characters. Explain what was checked instead, by whom and when.",
         )
-        if st.form_submit_button("Save override reason"):
+        if st.form_submit_button("Save override reason", key=k(f"save_override_{chosen}")):
             db.set_override(int(chosen), reason)
             st.rerun()

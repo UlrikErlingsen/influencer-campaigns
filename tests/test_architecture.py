@@ -36,7 +36,7 @@ def test_no_file_under_src_imports_streamlit_except_ui() -> None:
         for path in SRC.rglob("*.py")
         if not _in_ui_package(path) and _imports_streamlit(path)
     ]
-    assert not offenders, f"Streamlit belongs in app.py, pages/ or src/influencesignal/ui/, not the package: {offenders}"
+    assert not offenders, f"Streamlit belongs in app.py or src/influencesignal/ui/, not the package: {offenders}"
 
 
 def _app_code() -> list[Path]:
@@ -45,14 +45,14 @@ def _app_code() -> list[Path]:
     return [path for path in ROOT.rglob("*.py") if not skip & set(path.relative_to(ROOT).parts)]
 
 
-def test_streamlit_only_in_app_pages_and_ui_package() -> None:
+def test_streamlit_only_in_app_and_ui_package() -> None:
     offenders = [
         str(path.relative_to(ROOT))
         for path in _app_code()
-        if path.name != "app.py" and path.parent.name != "pages" and not _in_ui_package(path)
-        and _imports_streamlit(path)
+        if path != ROOT / "app.py" and not _in_ui_package(path) and _imports_streamlit(path)
     ]
-    assert not offenders, f"Streamlit code belongs in app.py, pages/ or src/influencesignal/ui/: {offenders}"
+    assert not offenders, f"Streamlit code belongs in app.py or src/influencesignal/ui/: {offenders}"
+    assert not (ROOT / "pages").exists(), "pages live in src/influencesignal/ui/pages/ so a packaged install has them"
 
 
 def test_only_storage_module_touches_sqlite() -> None:
@@ -67,10 +67,10 @@ def test_only_storage_module_touches_sqlite() -> None:
 def test_every_page_module_exposes_render() -> None:
     import importlib
 
-    modules = sorted(path.stem for path in (ROOT / "pages").glob("*.py") if path.stem not in ("__init__", "ui"))
+    modules = sorted(path.stem for path in (UI_PACKAGE / "pages").glob("*.py") if path.stem != "__init__")
     assert len(modules) == 9
     for name in modules:
-        module = importlib.import_module(f"pages.{name}")
+        module = importlib.import_module(f"influencesignal.ui.pages.{name}")
         assert callable(getattr(module, "render", None)), name
 
 

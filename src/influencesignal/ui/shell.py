@@ -1,7 +1,10 @@
-"""Shared Streamlit shell for Influence Signal: theme, workspace, masthead and small display helpers.
+"""Shared Streamlit shell for Influence Signal: workspace, namespaced keys, notes and small display helpers.
 
-Streamlit code lives in app.py, pages/ and the synced Signal theme (``influencesignal.ui.signal_theme``).
-Everything else here calls the influencesignal package.
+Every session-state and widget key goes through ``k()`` (prefixed with the slug ``influence:``) so the app can share
+one Streamlit session with the other Signal apps inside Signal Hub.
+
+Hub mode (``SIGNAL_HUB=1``): the workspace is one private in-memory SQLite database per browser session, seeded
+with the fictional demo. Nothing is read from or written to disk, and the database-folder settings are off.
 """
 
 from __future__ import annotations
@@ -26,11 +29,12 @@ from influencesignal.compliance import (
 from influencesignal.demo import DEMO_NOTICE, load_demo
 from influencesignal.errors import DataProblem, friendly_message
 from influencesignal.rules import DEFAULT_RULES_PATH, load_rules
-from influencesignal.storage import Store, default_db_path
+from influencesignal.storage import MEMORY, Store, default_db_path
 from influencesignal.ui import signal_theme as sig
 from influencesignal.utm import PLATFORMS
 
-KEY = "influence"  # Signal theme key: Influence Signal, Market family
+NS = "influence"  # app slug: namespace for session-state and widget keys
+KEY = NS  # Signal theme key: Influence Signal, Market family
 ACCENT = sig.app(KEY)["fam"]["600"]  # own/highlighted chart series
 MARK_SVG = sig.ASSETS / "marks" / f"{sig.app(KEY)['slug']}-mark.svg"
 STATUS_ICONS = {
@@ -41,6 +45,21 @@ STATUS_ICONS = {
     STATUS_NOT_PUBLISHED: "·",
 }
 GOAL_METRIC = {"awareness": "cpm_nok", "traffic": "cpc_nok", "sales": "cost_per_redemption_nok"}
+HUB_WORKSPACE_NOTE = (
+    "**Signal Hub demo workspace.** This session keeps its data in memory only, seeded with the fictional demo; "
+    "nothing is saved and it is gone when you close the tab. Database folders are off in Signal Hub — run the app "
+    "locally to keep a SQLite workspace on your own computer."
+)
+
+
+def k(name: str) -> str:
+    """Namespace a session-state or widget key with the app slug, so apps can share one Hub session."""
+    return f"{NS}:{name}"
+
+
+def hub_mode() -> bool:
+    """True inside Signal Hub: in-memory workspace only, no disk, no local workspace, no network."""
+    return os.environ.get("SIGNAL_HUB") == "1"
 
 
 @st.cache_resource(show_spinner=False)
@@ -54,6 +73,8 @@ def open_store(path: str) -> Store:
 
 
 def rules_path() -> Path:
+    if hub_mode():
+        return DEFAULT_RULES_PATH  # the packaged rules; never a local file named by the environment
     custom = os.getenv("INFLUENCESIGNAL_RULES", "").strip()
     return Path(custom) if custom else DEFAULT_RULES_PATH
 
@@ -70,13 +91,41 @@ def current_rules():
 
 
 def current_db_path() -> str:
-    if "db_path" not in st.session_state:
-        st.session_state["db_path"] = str(default_db_path().resolve())
-    return st.session_state["db_path"]
+    if k("db_path") not in st.session_state:
+        st.session_state[k("db_path")] = str(default_db_path().resolve())
+    return st.session_state[k("db_path")]
+
+
+def hub_store() -> Store:
+    """This session's private in-memory workspace, created with the fictional demo on first use."""
+    if k("memory_store") not in st.session_state:
+        memory = Store(MEMORY)
+        load_demo(memory, current_rules())
+        st.session_state[k("memory_store")] = memory
+    return st.session_state[k("memory_store")]
 
 
 def store() -> Store:
+    if hub_mode():
+        return hub_store()
     return open_store(current_db_path())
+
+
+def open_workspace() -> Store | None:
+    """The workspace for this run. If the chosen folder is unusable, fall back to the default so Settings stays
+    reachable; returns None only when even the default cannot be opened (the error is shown)."""
+    try:
+        return store()
+    except Exception as exc:  # pragma: no cover - only on unusable folders
+        show_error(exc)
+        if hub_mode():
+            return None
+        default_path = str(default_db_path().resolve())
+        if st.session_state.get(k("db_path")) == default_path:
+            return None
+        st.session_state[k("db_path")] = default_path
+        st.warning(f"Switched back to the default database: {default_path}")
+        return store()
 
 
 def show_error(exc: Exception) -> None:
@@ -94,6 +143,12 @@ def legal_note() -> None:
 def demo_note(is_demo: bool) -> None:
     if is_demo:
         sig.note("info", f"**Demo data.** {DEMO_NOTICE}")
+
+
+def hub_note() -> None:
+    """Explain the in-memory workspace where a disk feature is off (Signal Hub only)."""
+    if hub_mode():
+        sig.note("muted", HUB_WORKSPACE_NOTE)
 
 
 def lane_title(stage: str, count: int) -> None:
@@ -129,7 +184,7 @@ def num(value: object, decimals: int = 0) -> str:
 
 
 def active_campaign() -> dict | None:
-    campaign_id = st.session_state.get("campaign_id")
+    campaign_id = st.session_state.get(k("campaign_id"))
     if campaign_id is None:
         return None
     try:
@@ -140,7 +195,7 @@ def active_campaign() -> dict | None:
 
 def select_campaign_next_run(campaign_id: int | None) -> None:
     """Pages cannot change the sidebar widget after it rendered; queue the change for the next run."""
-    st.session_state["_next_campaign"] = campaign_id
+    st.session_state[k("next_campaign")] = campaign_id
 
 
 def require_campaign() -> dict | None:

@@ -12,7 +12,8 @@ from influencesignal.compliance import (
 from influencesignal.storage import CATEGORIES, GOALS
 from influencesignal.ui import signal_theme as sig
 
-from .ui import (
+from ..shell import (
+    k,
     active_campaign,
     current_rules,
     date_or_none,
@@ -55,15 +56,18 @@ def render() -> None:
             )
             legal_note()
         with st.expander(f"Edit “{campaign['name']}”", expanded=False):
-            with st.form(f"edit_campaign_{campaign['id']}"):
+            with st.form(k(f"edit_campaign_{campaign['id']}")):
                 data = _campaign_fields(campaign, f"c{campaign['id']}")
                 st.caption(f"Slug (used as utm_campaign, fixed once created): `{campaign['slug']}`")
-                if st.form_submit_button("Save campaign", type="primary"):
+                if st.form_submit_button("Save campaign", type="primary", key=k(f"save_campaign_{campaign['id']}")):
                     db.update_campaign(int(campaign["id"]), data)
                     st.success("Saved.")
                     st.rerun()
-            confirm = st.checkbox("I want to delete this campaign, its pipeline, deliverables and checklist answers")
-            if st.button("Delete campaign", disabled=not confirm):
+            confirm = st.checkbox(
+                "I want to delete this campaign, its pipeline, deliverables and checklist answers",
+                key=k(f"confirm_delete_campaign_{campaign['id']}"),
+            )
+            if st.button("Delete campaign", disabled=not confirm, key=k(f"delete_campaign_{campaign['id']}")):
                 db.delete_campaign(int(campaign["id"]))
                 select_campaign_next_run(None)
                 st.rerun()
@@ -72,9 +76,9 @@ def render() -> None:
             st.markdown(f"**Deliverables template** — {campaign['deliverables_template'] or '–'}")
             st.markdown(f"**Landing page** — `{campaign['landing_url'] or 'not set'}`")
     with st.expander("Create a new campaign", expanded=campaigns.empty):
-        with st.form("new_campaign", clear_on_submit=True):
+        with st.form(k("new_campaign"), clear_on_submit=True):
             data = _campaign_fields({}, "newc")
-            if st.form_submit_button("Create campaign", type="primary"):
+            if st.form_submit_button("Create campaign", type="primary", key=k("create_campaign")):
                 select_campaign_next_run(db.add_campaign(data))
                 st.rerun()
 
@@ -82,34 +86,34 @@ def render() -> None:
 def _campaign_fields(current: dict, key: str) -> dict:
     data: dict[str, object] = {}
     cols = st.columns(2)
-    data["name"] = cols[0].text_input("Campaign name *", current.get("name", ""), key=f"{key}_name")
-    data["brand"] = cols[1].text_input("Brand", current.get("brand", ""), key=f"{key}_brand")
+    data["name"] = cols[0].text_input("Campaign name *", current.get("name", ""), key=k(f"{key}_name"))
+    data["brand"] = cols[1].text_input("Brand", current.get("brand", ""), key=k(f"{key}_brand"))
     cols = st.columns(3)
     goal = current.get("goal", "awareness")
-    data["goal"] = cols[0].selectbox("Goal", GOALS, index=GOALS.index(goal) if goal in GOALS else 0, key=f"{key}_goal")
+    data["goal"] = cols[0].selectbox("Goal", GOALS, index=GOALS.index(goal) if goal in GOALS else 0, key=k(f"{key}_goal"))
     category = current.get("category", "general")
     data["category"] = cols[1].selectbox(
-        "Category", CATEGORIES, index=CATEGORIES.index(category) if category in CATEGORIES else 0, key=f"{key}_cat",
+        "Category", CATEGORIES, index=CATEGORIES.index(category) if category in CATEGORIES else 0, key=k(f"{key}_cat"),
         help="Alcohol, gambling and tobacco/nicotine have stricter Norwegian rules and trigger a flag.",
     )
     data["budget_nok"] = cols[2].number_input(
         "Budget (NOK)", min_value=0, step=5000, value=int_or_none(current.get("budget_nok")), placeholder="not set",
-        key=f"{key}_budget",
+        key=k(f"{key}_budget"),
     )
     data["targets_children"] = st.checkbox(
-        "This campaign targets children", bool(current.get("targets_children")), key=f"{key}_kids"
+        "This campaign targets children", bool(current.get("targets_children")), key=k(f"{key}_kids")
     )
     cols = st.columns(2)
-    start = cols[0].date_input("Start date", date_or_none(current.get("start_date")) or date.today(), key=f"{key}_start")
-    end = cols[1].date_input("End date", date_or_none(current.get("end_date")) or date.today(), key=f"{key}_end")
+    start = cols[0].date_input("Start date", date_or_none(current.get("start_date")) or date.today(), key=k(f"{key}_start"))
+    end = cols[1].date_input("End date", date_or_none(current.get("end_date")) or date.today(), key=k(f"{key}_end"))
     data["start_date"], data["end_date"] = start.isoformat(), end.isoformat()
     data["landing_url"] = st.text_input(
-        "Landing page (https://…)", current.get("landing_url", ""), key=f"{key}_url",
+        "Landing page (https://…)", current.get("landing_url", ""), key=k(f"{key}_url"),
         help="Tracked links add utm_source, utm_medium=influencer, utm_campaign and utm_content to this page.",
     )
-    data["brief"] = st.text_area("Brief", current.get("brief", ""), key=f"{key}_brief", height=110)
+    data["brief"] = st.text_area("Brief", current.get("brief", ""), key=k(f"{key}_brief"), height=110)
     data["deliverables_template"] = st.text_input(
-        "Deliverables template", current.get("deliverables_template", ""), key=f"{key}_tmpl",
+        "Deliverables template", current.get("deliverables_template", ""), key=k(f"{key}_tmpl"),
         placeholder="e.g. 1 × reel + 1 × story · discount code CODE-<NAME>",
     )
     return data

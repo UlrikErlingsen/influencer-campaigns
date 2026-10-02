@@ -14,7 +14,8 @@ OLD_COLOURS = ("#173c3a", "#d95b40", "#83d2b4", "#f2c66d", "#17322e", "#102c2a",
 
 
 def _ui_sources() -> str:
-    files = [ROOT / "app.py", *sorted((ROOT / "pages").glob("*.py"))]
+    synced = {"signal_theme.py", "signal_font.py"}  # synced from Signal Hub; they hold the shared CSS
+    files = [ROOT / "app.py", *sorted(path for path in UI.rglob("*.py") if path.name not in synced)]
     return "\n".join(path.read_text(encoding="utf-8") for path in files)
 
 
@@ -44,7 +45,7 @@ def test_app_uses_shared_signal_theme_instead_of_pasted_styles() -> None:
     sources = _ui_sources()
     assert "st.set_page_config(**sig.page_config(KEY" in standalone
     assert "sig.apply(KEY)" in standalone
-    assert 'KEY = "influence"' in (ROOT / "pages" / "ui.py").read_text(encoding="utf-8")
+    assert 'NS = "influence"' in (UI / "shell.py").read_text(encoding="utf-8")
     assert "from influencesignal.ui import signal_theme as sig" in sources
     assert "<style>" not in sources
     assert "lockup-dark" not in sources
@@ -52,8 +53,8 @@ def test_app_uses_shared_signal_theme_instead_of_pasted_styles() -> None:
         assert old_colour not in sources.lower(), old_colour
         assert old_colour not in (ROOT / "src" / "influencesignal" / "report.py").read_text(encoding="utf-8").lower()
     # Charts use the per-app Plotly template (via sig.chart), not the process-wide default or Streamlit's theme.
-    results = (ROOT / "pages" / "results.py").read_text(encoding="utf-8")
-    assert "sig.chart(KEY, figure)" in results
+    results = (UI / "pages" / "results.py").read_text(encoding="utf-8")
+    assert "sig.chart(KEY, figure" in results
     assert "st.plotly_chart" not in sources
 
 

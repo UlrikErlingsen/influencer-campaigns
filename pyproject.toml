@@ -31,16 +31,20 @@ dependencies = [
   "defusedxml>=0.7,<1",
   "openpyxl>=3.1,<4",
   "pandas>=2.0,<3",
-  "plotly>=5.18,<8",
   "pyyaml>=6,<7",
-  "streamlit>=1.50,<2",
 ]
 
 [project.optional-dependencies]
+ui = [
+  "plotly>=5.18,<8",
+  "streamlit>=1.50,<2",
+]
 test = [
   "build>=1.2,<2",
+  "plotly>=5.18,<8",
   "pytest>=8,<10",
   "ruff>=0.8,<1",
+  "streamlit>=1.50,<2",
 ]
 
 [project.urls]

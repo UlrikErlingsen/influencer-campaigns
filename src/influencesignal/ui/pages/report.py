@@ -12,7 +12,8 @@ from influencesignal.compliance import (
 from influencesignal.report import build_html, build_report, build_xlsx
 from influencesignal.ui import signal_theme as sig
 
-from .ui import (
+from ..shell import (
+    k,
     current_rules,
     demo_note,
     legal_note,
@@ -46,9 +47,11 @@ def render() -> None:
     c1, c2 = st.columns(2)
     c1.download_button(
         "Download XLSX workbook", build_xlsx(report), f"influencesignal-{campaign['slug']}.xlsx",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", type="primary",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", type="primary", key=k("report_xlsx"),
     )
     html = build_html(report)
-    c2.download_button("Download one-page HTML (print to PDF)", html.encode("utf-8"), f"influencesignal-{campaign['slug']}.html", "text/html")
+    c2.download_button("Download one-page HTML (print to PDF)", html.encode("utf-8"), f"influencesignal-{campaign['slug']}.html", "text/html",
+        key=k("report_html"),
+    )
     st.markdown("#### Preview")
     st.components.v1.html(html, height=1250, scrolling=True)

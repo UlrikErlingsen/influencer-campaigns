@@ -12,7 +12,8 @@ from influencesignal.errors import DataProblem, GateBlocked
 from influencesignal.storage import STAGES
 from influencesignal.ui import signal_theme as sig
 
-from .ui import (
+from ..shell import (
+    k,
     STATUS_ICONS,
     creator_card,
     current_rules,
@@ -48,7 +49,7 @@ def render() -> None:
     cols[2].metric("Agreed fees", nok(committed))
     cols[3].metric("Unallocated", nok(budget - committed))
 
-    flash = st.session_state.pop("pipeline_flash", None)
+    flash = st.session_state.pop(k("pipeline_flash"), None)
     if flash:
         kind, message, reasons = flash
         (st.success if kind == "success" else st.error)(message)
@@ -61,8 +62,8 @@ def render() -> None:
     candidates = candidates[~candidates["id"].isin(engagements["creator_id"])]
     with st.expander("Add creators to the shortlist"):
         options = dict(zip(candidates["id"], candidates["name"]))
-        chosen = st.multiselect("Creators", list(options), format_func=options.get)
-        if st.button("Add to shortlist", type="primary", disabled=not chosen):
+        chosen = st.multiselect("Creators", list(options), format_func=options.get, key=k("shortlist_add"))
+        if st.button("Add to shortlist", type="primary", disabled=not chosen, key=k("shortlist_submit")):
             db.add_to_shortlist(int(campaign["id"]), [int(value) for value in chosen])
             st.rerun()
 
@@ -91,7 +92,7 @@ def render() -> None:
                                 f"{deliverable_counts.get(engagement_id, 0)} deliverable(s)",
                             ],
                         )
-                        key = f"stage_{engagement_id}_{stage}"
+                        key = k(f"stage_{engagement_id}_{stage}")
                         st.selectbox(
                             "Stage", STAGES, index=STAGES.index(stage), key=key, label_visibility="collapsed",
                             on_change=_move_card, args=(engagement_id, key, stage, row["creator_name"]),
@@ -103,9 +104,11 @@ def render() -> None:
     with st.expander("Remove a creator from this campaign"):
         options = dict(zip(engagements["id"], engagements["creator_name"]))
         if options:
-            chosen = st.selectbox("Creator", list(options), format_func=options.get, key="remove_engagement")
-            confirm = st.checkbox("Also delete their deliverables and checklist answers for this campaign")
-            if st.button("Remove from campaign", disabled=not confirm):
+            chosen = st.selectbox("Creator", list(options), format_func=options.get, key=k("remove_engagement"))
+            confirm = st.checkbox(
+                "Also delete their deliverables and checklist answers for this campaign", key=k("confirm_remove")
+            )
+            if st.button("Remove from campaign", disabled=not confirm, key=k("remove_submit")):
                 db.remove_engagement(int(chosen))
                 st.rerun()
 
@@ -114,10 +117,10 @@ def _move_card(engagement_id: int, key: str, previous: str, name: str) -> None:
     target = st.session_state.get(key)
     try:
         store().move_engagement(engagement_id, target, current_rules())
-        st.session_state["pipeline_flash"] = ("success", f"Moved {name} to {target}.", ())
+        st.session_state[k("pipeline_flash")] = ("success", f"Moved {name} to {target}.", ())
     except GateBlocked as exc:
-        st.session_state["pipeline_flash"] = ("error", f"{name}: {exc}", exc.reasons)
+        st.session_state[k("pipeline_flash")] = ("error", f"{name}: {exc}", exc.reasons)
         del st.session_state[key]
     except DataProblem as exc:
-        st.session_state["pipeline_flash"] = ("error", str(exc), ())
+        st.session_state[k("pipeline_flash")] = ("error", str(exc), ())
         del st.session_state[key]

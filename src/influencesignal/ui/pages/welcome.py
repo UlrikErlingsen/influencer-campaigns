@@ -6,9 +6,11 @@ import streamlit as st
 
 from influencesignal.ui import signal_theme as sig
 
-from .ui import (
+from ..shell import (
     KEY,
     demo_note,
+    hub_mode,
+    hub_note,
     legal_note,
     store,
 )
@@ -26,6 +28,7 @@ def render() -> None:
                "CPM · CPC · ROAS", "XLSX + one-page report"],
     )
     demo_note(store().has_demo_data())
+    hub_note()
     sig.cards(
         [
             ("01 · RUN", "One pipeline per campaign",
@@ -48,9 +51,12 @@ def render() -> None:
         "4. **7 · Report** — download the XLSX workbook and the one-page HTML summary."
     )
     legal_note()
+    where = (
+        "In Signal Hub everything you type stays in this session's memory and is discarded when you close the tab."
+        if hub_mode() else "Everything you type stays in a SQLite file on this computer."
+    )
     sig.note(
         "boundary",
         "**Boundaries.** Influence Signal never contacts creators, never calls a social-network API and never scrapes "
-        "profiles. Everything you type stays in a SQLite file on this computer. The checklist records what your team "
-        "checked; it is not a legal assessment.",
+        f"profiles. {where} The checklist records what your team checked; it is not a legal assessment.",
     )

@@ -16,7 +16,8 @@ from influencesignal.io import (
 from influencesignal.metrics import GENERAL_NOTES, METRIC_LABELS, RESULT_COLUMNS, row_notes, summarize_results
 from influencesignal.ui import signal_theme as sig
 
-from .ui import (
+from ..shell import (
+    k,
     GOAL_METRIC,
     KEY,
     demo_note,
@@ -59,7 +60,7 @@ def render() -> None:
     metric_options = list(METRIC_LABELS)
     metric = st.radio(
         "Compare creators on", metric_options, index=metric_options.index(default_metric),
-        format_func=METRIC_LABELS.get, horizontal=True,
+        format_func=METRIC_LABELS.get, horizontal=True, key=k(f"compare_metric_{campaign['id']}"),
         help="Defaults to the campaign goal: awareness → CPM, traffic → CPC, sales → cost per redemption.",
     )
     chart = per_creator.dropna(subset=[metric]).sort_values(metric, ascending=(metric != "roas"))
@@ -83,7 +84,7 @@ def render() -> None:
         signal_layout = pio.templates[sig.template(KEY)].layout
         figure.update_layout(font=signal_layout.font, paper_bgcolor=signal_layout.paper_bgcolor,
                              plot_bgcolor=signal_layout.plot_bgcolor)
-        sig.chart(KEY, figure)  # per-app Signal template, Streamlit chart theme off
+        sig.chart(KEY, figure, key=k("creator_chart"))  # per-app Signal template, Streamlit chart theme off
     st.dataframe(
         per_creator,
         hide_index=True,
@@ -106,9 +107,9 @@ def render() -> None:
         width="stretch",
         disabled=["id", "creator_name", "platform", "format", "fee_nok"],
         column_config={column: st.column_config.NumberColumn(column, min_value=0) for column in RESULT_COLUMNS},
-        key=f"results_editor_{campaign['id']}",
+        key=k(f"results_editor_{campaign['id']}"),
     )
-    if st.button("Save results", type="primary"):
+    if st.button("Save results", type="primary", key=k("save_results")):
         for row in edited.to_dict("records"):
             db.set_results(int(row["id"]), {column: row[column] for column in RESULT_COLUMNS})
         st.success("Results saved.")
@@ -117,14 +118,14 @@ def render() -> None:
         template = deliverables[["id", "creator_name", "platform", "format", *RESULT_COLUMNS]].rename(columns={"id": "deliverable_id"})
         st.download_button(
             "Download results template for this campaign", dataframe_csv_bytes(template),
-            f"influencesignal-results-{campaign['slug']}.csv", "text/csv",
+            f"influencesignal-results-{campaign['slug']}.csv", "text/csv", key=k("results_template"),
         )
         st.caption("Required: `deliverable_id`. Any of " + ", ".join(f"`{c}`" for c in RESULT_IMPORT_COLUMNS[1:]) + ". Blank cells are left unchanged.")
-        upload = st.file_uploader("Upload results (CSV or XLSX)", type=["csv", "xlsx"], key="results_upload")
+        upload = st.file_uploader("Upload results (CSV or XLSX)", type=["csv", "xlsx"], key=k("results_upload"))
         if upload is not None:
             clean = validate_results(read_table(upload.name, upload.getvalue()), set(deliverables["id"].astype(int)))
             st.dataframe(clean, hide_index=True, width="stretch")
-            if st.button("Import these results", type="primary"):
+            if st.button("Import these results", type="primary", key=k("import_results")):
                 for row in clean.to_dict("records"):
                     values = {k: v for k, v in row.items() if k != "deliverable_id" and v is not None and not pd.isna(v)}
                     db.set_results(int(row["deliverable_id"]), values)

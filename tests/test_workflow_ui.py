@@ -13,6 +13,11 @@ from influencesignal.storage import Store
 APP = str(Path(__file__).parents[1] / "app.py")
 
 
+def K(name: str) -> str:
+    """The app namespaces every widget key with its slug."""
+    return f"influence:{name}"
+
+
 @pytest.fixture
 def workspace(tmp_path, monkeypatch) -> Path:
     monkeypatch.setenv("INFLUENCESIGNAL_DATA_DIR", str(tmp_path))
@@ -46,11 +51,11 @@ def test_full_campaign_workflow_through_the_ui(workspace: Path) -> None:
 
     # 1. Campaign.
     app = _open("campaigns")
-    app.text_input(key="newc_name").set_value("Vinter Test 2026")
-    app.text_input(key="newc_brand").set_value("Testmerke")
-    app.selectbox(key="newc_goal").set_value("sales")
-    app.number_input(key="newc_budget").set_value(50000)
-    app.text_input(key="newc_url").set_value("https://shop.example/vinter?src=ig")
+    app.text_input(key=K("newc_name")).set_value("Vinter Test 2026")
+    app.text_input(key=K("newc_brand")).set_value("Testmerke")
+    app.selectbox(key=K("newc_goal")).set_value("sales")
+    app.number_input(key=K("newc_budget")).set_value(50000)
+    app.text_input(key=K("newc_url")).set_value("https://shop.example/vinter?src=ig")
     _button(app, "Create campaign").click().run()
     _ok(app)
     campaign = store.campaigns().iloc[0]
@@ -58,9 +63,9 @@ def test_full_campaign_workflow_through_the_ui(workspace: Path) -> None:
 
     # 2. Creator; unknown followers stay unknown.
     app = _open("creators")
-    app.text_input(key="new_name").set_value("Åse Test")
-    app.text_input(key="new_instagram").set_value("@ase.test")
-    app.selectbox(key="new_region").set_value("Trøndelag")
+    app.text_input(key=K("new_name")).set_value("Åse Test")
+    app.text_input(key=K("new_instagram")).set_value("@ase.test")
+    app.selectbox(key=K("new_region")).set_value("Trøndelag")
     _button(app, "Add creator").click().run()
     _ok(app)
     creator = store.creators().iloc[0]
@@ -77,9 +82,9 @@ def test_full_campaign_workflow_through_the_ui(workspace: Path) -> None:
 
     # 4. Deliverable with a tracked link in the house UTM scheme.
     app = _open("deliverables")
-    app.selectbox(key="new_deliv_format").set_value("reel")
-    app.number_input(key="new_deliv_fee").set_value(4000)
-    app.text_input(key="new_deliv_code").set_value("VINTER-ASE")
+    app.selectbox(key=K("new_deliv_format")).set_value("reel")
+    app.number_input(key=K("new_deliv_fee")).set_value(4000)
+    app.text_input(key=K("new_deliv_code")).set_value("VINTER-ASE")
     _button(app, "Add deliverable").click().run()
     _ok(app)
     deliverable = store.deliverables(int(campaign["id"])).iloc[0]
@@ -91,22 +96,22 @@ def test_full_campaign_workflow_through_the_ui(workspace: Path) -> None:
 
     # The gate refuses Paid before publishing and checking.
     app = _open("pipeline")
-    app.selectbox(key=f"stage_{int(engagements['id'].iloc[0])}_Shortlist").set_value("Paid").run()
+    app.selectbox(key=K(f"stage_{int(engagements['id'].iloc[0])}_Shortlist")).set_value("Paid").run()
     assert any("Cannot move to Paid" in str(error.value) for error in app.error)
     assert store.engagements(int(campaign["id"]))["stage"].iloc[0] == "Shortlist"
 
     # 5. Mark it published.
     app = _open("deliverables")
-    app.checkbox(key=f"d{deliverable_id}_pub").check()
-    app.text_input(key=f"d{deliverable_id}_post").set_value("https://www.instagram.com/p/example")
-    app.button(key=f"d{deliverable_id}_save").click().run()
+    app.checkbox(key=K(f"d{deliverable_id}_pub")).check()
+    app.text_input(key=K(f"d{deliverable_id}_post")).set_value("https://www.instagram.com/p/example")
+    app.button(key=K(f"d{deliverable_id}_save")).click().run()
     _ok(app)
     assert store.deliverable(deliverable_id)["published_date"]
 
     # 6. Checklist: answer every applicable rule.
     app = _open("compliance")
-    radios = [radio for radio in app.radio if radio.key and radio.key.startswith(f"ans_{deliverable_id}_")]
-    assert {radio.key.split("_", 2)[2] for radio in radios} == {"ad_identified", "label_wording", "retouch_label"}
+    radios = [radio for radio in app.radio if radio.key and radio.key.startswith(K(f"ans_{deliverable_id}_"))]
+    assert {radio.key.split(":", 1)[1].split("_", 2)[2] for radio in radios} == {"ad_identified", "label_wording", "retouch_label"}
     for radio in radios:
         radio.set_value("na" if radio.key.endswith("retouch_label") else "yes")
     _button(app, "Save checklist").click().run()
@@ -115,7 +120,7 @@ def test_full_campaign_workflow_through_the_ui(workspace: Path) -> None:
 
     # 7. Now Paid is allowed.
     app = _open("pipeline")
-    app.selectbox(key=f"stage_{int(engagements['id'].iloc[0])}_Shortlist").set_value("Paid").run()
+    app.selectbox(key=K(f"stage_{int(engagements['id'].iloc[0])}_Shortlist")).set_value("Paid").run()
     _ok(app)
     assert store.engagements(int(campaign["id"]))["stage"].iloc[0] == "Paid"
 
@@ -145,7 +150,7 @@ def test_restricted_category_and_workspace_actions(workspace: Path) -> None:
 
     # Edit the campaign to a restricted category through the form.
     app = _open("campaigns")
-    app.selectbox(key=f"c{campaign_id}_cat").set_value("alcohol")
+    app.selectbox(key=K(f"c{campaign_id}_cat")).set_value("alcohol")
     _button(app, "Save campaign").click().run()
     _ok(app)
     assert store.campaign(campaign_id)["category"] == "alcohol"
@@ -160,14 +165,14 @@ def test_restricted_category_and_workspace_actions(workspace: Path) -> None:
     # Destructive actions need their confirm box first.
     app = _open("settings")
     assert _button(app, "Delete all data").disabled
-    app.checkbox(key="confirm_empty").check().run()
+    app.checkbox(key=K("confirm_empty")).check().run()
     _button(app, "Delete all data").click().run()
     _ok(app)
     assert store.is_empty()
 
     app = _open("settings")
     assert _button(app, "Reload demo").disabled
-    app.checkbox(key="confirm_demo").check().run()
+    app.checkbox(key=K("confirm_demo")).check().run()
     _button(app, "Reload demo").click().run()
     assert not app.exception, [error.value for error in app.exception]
     assert store.has_demo_data() and len(store.creators()) == 25

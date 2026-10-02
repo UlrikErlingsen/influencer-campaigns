@@ -75,8 +75,8 @@ def test_compliance_screens_carry_the_disclaimer(page: str) -> None:
 
 def test_campaign_query_parameter_selects_the_campaign() -> None:
     app = _app("results", campaign="fjellbrus-varlop-2026")
-    store = Store(Path(app.session_state["db_path"]))
-    assert store.campaign(app.session_state["campaign_id"])["slug"] == "fjellbrus-varlop-2026"
+    store = Store(Path(app.session_state["influence:db_path"]))
+    assert store.campaign(app.session_state["influence:campaign_id"])["slug"] == "fjellbrus-varlop-2026"
 
 
 def test_compliance_page_shows_the_missing_label_warning() -> None:
@@ -86,7 +86,7 @@ def test_compliance_page_shows_the_missing_label_warning() -> None:
 
 def test_pipeline_gate_refuses_paid_for_the_unlabelled_post() -> None:
     app = _app("pipeline", campaign=AUTUMN)
-    stage_boxes = [box for box in app.selectbox if box.key and box.key.startswith("stage_") and box.value == "Published"]
+    stage_boxes = [box for box in app.selectbox if box.key and box.key.startswith("influence:stage_") and box.value == "Published"]
     assert stage_boxes
     stage_boxes[0].set_value("Paid").run()
     assert not app.exception, [error.value for error in app.exception]
@@ -110,11 +110,11 @@ def test_unusable_data_folder_keeps_current_database(tmp_path) -> None:
     blocker = tmp_path / "not-a-folder"
     blocker.write_text("a file, not a folder", encoding="utf-8")
     app = _app("settings")
-    before = app.session_state["db_path"]
+    before = app.session_state["influence:db_path"]
     next(box for box in app.text_input if box.label == "Data folder").set_value(str(blocker))
     next(button for button in app.button if button.label == "Use this folder").click().run()
     assert not app.exception, [error.value for error in app.exception]
-    assert app.session_state["db_path"] == before
+    assert app.session_state["influence:db_path"] == before
     assert any("Could not use that folder" in str(error.value) for error in app.error)
 
 
@@ -129,7 +129,7 @@ def test_compliance_page_flags_changes_after_payment(tmp_path) -> None:
 
 
 def test_no_external_calls_in_source() -> None:
-    files = [Path(APP), *(ROOT / "pages").glob("*.py"), *(ROOT / "src" / "influencesignal").glob("*.py")]
+    files = [Path(APP), *(ROOT / "src" / "influencesignal").rglob("*.py")]
     joined = "\n".join(path.read_text(encoding="utf-8") for path in files)
     for forbidden in ("requests.", "urllib.request", "httpx", "graph.facebook", "api.tiktok", "openai", "anthropic"):
         assert forbidden not in joined, forbidden
