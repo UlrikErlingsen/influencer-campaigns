@@ -21,7 +21,7 @@ if errorlevel 1 (
   )
 )
 if "%INFLUENCESIGNAL_PORT%"=="" set INFLUENCESIGNAL_PORT=8590
-if "%INFLUENCESIGNAL_MAX_UPLOAD_MB%"=="" set INFLUENCESIGNAL_MAX_UPLOAD_MB=1000
+if "%INFLUENCESIGNAL_MAX_UPLOAD_MB%"=="" set INFLUENCESIGNAL_MAX_UPLOAD_MB=10000
 echo Starting Influence Signal at http://127.0.0.1:%INFLUENCESIGNAL_PORT% ...
 echo Your data is saved in the "data" folder next to this file. The first start loads the fictional demo.
 ".venv\Scripts\python.exe" -m streamlit run app.py --server.headless=false --server.address=127.0.0.1 --server.port=%INFLUENCESIGNAL_PORT% --server.maxUploadSize=%INFLUENCESIGNAL_MAX_UPLOAD_MB% --server.fileWatcherType=none --browser.gatherUsageStats=false

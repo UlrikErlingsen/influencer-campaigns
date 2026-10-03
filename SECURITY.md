@@ -15,7 +15,7 @@ The app has no authentication layer and stores personal data (creator contacts a
 ## Hardening in the code
 
 - CSV and XLSX exports neutralise spreadsheet formula injection (cells starting with `=`, `+`, `-`, `@`).
-- `defusedxml` protects XLSX parsing; uploads are limited to 1000 MB, 5000 MB expanded (XLSX), 5,000,000 rows and 100 columns; `.xlsm` is refused.
+- `defusedxml` protects XLSX parsing; a public demo (`SIGNAL_PUBLIC=1`) limits uploads to 20 MB, 100 MB expanded (XLSX), 50,000 rows and 100 columns, while the app run locally has no built-in data limits; `.xlsm` is refused.
 - The HTML report escapes all user-entered text.
 - SQL uses parameter binding; no user text is interpolated into queries.
 - The Docker image runs as a non-root user.

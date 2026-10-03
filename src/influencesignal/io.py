@@ -14,23 +14,17 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 
+from . import limits
 from .errors import DataProblem
 from .metrics import RESULT_COLUMNS
 from .utm import PLATFORMS
 
 defusedxml.defuse_stdlib()
 
-# Influence Signal is in the suite's data-heavy tier: the local upload cap is 1000 MB (``.streamlit/config.toml``,
-# ``INFLUENCESIGNAL_MAX_UPLOAD_MB`` in the launchers, ``STREAMLIT_SERVER_MAX_UPLOAD_SIZE`` in Docker). The in-code
-# limits below must never undercut it. Validation and import are vectorized, so post-level files with millions of
-# rows stay practical; the screens show a preview of large tables instead of sending every row to the browser.
-MAX_UPLOAD_MB = 1000
-MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024
-# Zip-bomb guard for XLSX: the old 5x ratio between expanded size and upload size, kept at the new cap.
-MAX_EXPANDED_WORKBOOK_BYTES = 5 * MAX_UPLOAD_BYTES
-MAX_TABLE_ROWS = 5_000_000
-MAX_TABLE_COLUMNS = 100
-MAX_PROBLEMS_SHOWN = 25
+# No built-in data limits when run locally; the public demo caps (SIGNAL_PUBLIC=1) live in ``limits.py``.
+# Validation and import are vectorized, so post-level files with millions of rows stay practical; the screens show
+# a preview of large tables instead of sending every row to the browser.
+MAX_PROBLEMS_SHOWN = 25  # problems listed in one message (display only; every row is checked)
 TEXT = pd.StringDtype("pyarrow")  # compact Arrow-backed text for uploaded cells
 _ILLEGAL_XML = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
 _HANDLE = re.compile(r"^[A-Za-z0-9._-]{1,60}$")
@@ -101,7 +95,7 @@ def _separator(payload: bytes) -> str:
 
 
 def read_table(filename: str, payload: bytes) -> pd.DataFrame:
-    """Read an uploaded CSV (comma or semicolon) or XLSX with size limits.
+    """Read an uploaded CSV (comma or semicolon) or XLSX. No size limit locally; demo caps only with SIGNAL_PUBLIC=1.
 
     Cells are read as text into Arrow-backed strings (a fraction of the memory of Python string objects), straight from
     the uploaded bytes without a decoded copy of the whole file.
@@ -109,8 +103,7 @@ def read_table(filename: str, payload: bytes) -> pd.DataFrame:
     suffix = Path(filename).suffix.lower()
     if not payload:
         raise DataProblem("This file is empty.")
-    if len(payload) > MAX_UPLOAD_BYTES:
-        raise DataProblem(f"Uploads are limited to {MAX_UPLOAD_MB:,} MB.")
+    limits.check_upload_bytes(len(payload))
     try:
         if suffix == ".csv":
             frame = pd.read_csv(
@@ -124,25 +117,17 @@ def read_table(filename: str, payload: bytes) -> pd.DataFrame:
         elif suffix == ".xlsx":
             with zipfile.ZipFile(BytesIO(payload)) as workbook_zip:
                 expanded = sum(member.file_size for member in workbook_zip.infolist())
-            if expanded > MAX_EXPANDED_WORKBOOK_BYTES:
-                raise DataProblem(
-                    f"This workbook expands beyond {MAX_EXPANDED_WORKBOOK_BYTES // (1024 * 1024):,} MB. "
-                    "Remove unrelated sheets, or save the sheet as CSV (much faster for large files)."
-                )
+            limits.check_workbook_expansion(expanded)
             frame = pd.read_excel(BytesIO(payload), sheet_name=0, dtype=str).fillna("").astype(TEXT)
         else:
             raise DataProblem("Upload a CSV or XLSX file.")
     except DataProblem:
         raise
+    except MemoryError as exc:  # includes pyarrow's ArrowMemoryError
+        raise DataProblem(limits.OUT_OF_MEMORY) from exc
     except Exception as exc:  # pragma: no cover - parser messages differ by dependency version
         raise DataProblem(f"Could not read {filename}: {exc}") from exc
-    if len(frame) > MAX_TABLE_ROWS:
-        raise DataProblem(
-            f"The table has {len(frame):,} rows, above the {MAX_TABLE_ROWS:,}-row limit. "
-            "Split the file and import it in parts."
-        )
-    if len(frame.columns) > MAX_TABLE_COLUMNS:
-        raise DataProblem(f"The table exceeds the {MAX_TABLE_COLUMNS}-column safety limit.")
+    limits.check_table_shape(len(frame), len(frame.columns))
     frame.columns = [str(column).strip().lower().replace(" ", "_") for column in frame.columns]
     return frame
 

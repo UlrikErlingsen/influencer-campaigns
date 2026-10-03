@@ -1,45 +1,62 @@
-"""Large-data tier: the old 20 MB / 50,000-row limits no longer block, and the new limits explain themselves."""
+"""Data limits: none locally (the old 20 MB / 50,000-row limits are gone); demo caps only with SIGNAL_PUBLIC=1."""
 
 from pathlib import Path
 
 import pandas as pd
 import pytest
 
-from influencesignal import io
-from influencesignal.errors import DataProblem
+from influencesignal import limits
+from influencesignal.errors import DataProblem, friendly_message
 from influencesignal.io import read_table, validate_creators, validate_results
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_limits_match_the_data_heavy_tier() -> None:
-    assert io.MAX_UPLOAD_MB == 1000
-    assert io.MAX_UPLOAD_BYTES == 1000 * 1024 * 1024
-    assert io.MAX_TABLE_ROWS >= 5_000_000
-    assert io.MAX_EXPANDED_WORKBOOK_BYTES >= io.MAX_UPLOAD_BYTES
+def _roster(rows: int, columns: int = 0) -> bytes:
+    extra = "".join(f";extra_{index}" for index in range(columns))
+    body = "".join(f"Skaper {i};demo_{i};{1000 + i};3,5;Oslo{';x' * columns}\n" for i in range(rows))
+    return ("name;instagram;followers;engagement_rate;region" + extra + "\n" + body).encode("utf-8")
 
 
-def test_more_rows_than_the_old_limit_validate_and_import(store) -> None:
-    rows = 60_000  # the old limit was 50,000 rows
-    text = "name;instagram;followers;engagement_rate;region\n" + "".join(
-        f"Skaper {i};demo_{i};{1000 + i};3,5;Oslo\n" for i in range(rows)
-    )
-    clean, warnings = validate_creators(read_table("roster.csv", text.encode("utf-8")))
+def test_local_mode_accepts_input_beyond_the_demo_caps(store, monkeypatch) -> None:
+    monkeypatch.delenv("SIGNAL_PUBLIC", raising=False)
+    rows = limits.DEMO_MAX_TABLE_ROWS + 10_000  # also above the old 50,000-row limit
+    clean, warnings = validate_creators(read_table("roster.csv", _roster(rows)))
     assert len(clean) == rows and not warnings
     assert clean["engagement_rate"].iloc[-1] == pytest.approx(3.5)
     assert store.import_creators(clean) == (rows, 0)
     assert store.import_creators(clean.head(10)) == (0, 10)
     assert len(store.creators()) == rows
+    wide = read_table("wide.csv", _roster(2, columns=limits.DEMO_MAX_TABLE_COLUMNS))
+    assert len(wide.columns) > limits.DEMO_MAX_TABLE_COLUMNS
 
 
-def test_upload_and_row_limit_messages(monkeypatch) -> None:
-    monkeypatch.setattr(io, "MAX_UPLOAD_BYTES", 8)
-    with pytest.raises(DataProblem, match="limited to 1,000 MB"):
+def test_public_demo_enforces_its_caps(monkeypatch) -> None:
+    monkeypatch.setenv("SIGNAL_PUBLIC", "1")
+    monkeypatch.setattr(limits, "DEMO_MAX_UPLOAD_MB", 0)
+    with pytest.raises(DataProblem, match="Uploads are limited to 0 MB. This is a limit of the public demo"):
         read_table("x.csv", b"name\nKari Nordmann\n")
-    monkeypatch.setattr(io, "MAX_UPLOAD_BYTES", 1000 * 1024 * 1024)
-    monkeypatch.setattr(io, "MAX_TABLE_ROWS", 2)
-    with pytest.raises(DataProblem, match="3 rows, above the 2-row limit. Split the file"):
+    monkeypatch.setattr(limits, "DEMO_MAX_UPLOAD_MB", 20)
+    monkeypatch.setattr(limits, "DEMO_MAX_TABLE_ROWS", 2)
+    with pytest.raises(DataProblem, match="3 rows, above the 2-row limit. This is a limit of the public demo"):
         read_table("x.csv", b"name\na\nb\nc\n")
+    monkeypatch.setattr(limits, "DEMO_MAX_TABLE_ROWS", 50_000)
+    with pytest.raises(DataProblem, match="column limit. This is a limit of the public demo; the downloaded app"):
+        read_table("wide.csv", _roster(2, columns=limits.DEMO_MAX_TABLE_COLUMNS))
+    monkeypatch.setattr(limits, "DEMO_MAX_EXPANDED_WORKBOOK_MB", 0)
+    with pytest.raises(DataProblem, match="expands beyond 0 MB"):
+        limits.check_workbook_expansion(1)
+
+
+def test_out_of_memory_is_a_plain_message(monkeypatch) -> None:
+    assert "not enough memory" in friendly_message(MemoryError())
+
+    def no_memory(*args, **kwargs):
+        raise MemoryError
+
+    monkeypatch.setattr(pd, "read_csv", no_memory)
+    with pytest.raises(DataProblem, match="not enough memory on this computer"):
+        read_table("x.csv", b"name\nKari\n")
 
 
 def test_many_problems_are_summarized_not_listed() -> None:
@@ -47,7 +64,7 @@ def test_many_problems_are_summarized_not_listed() -> None:
     with pytest.raises(DataProblem) as problem:
         validate_creators(read_table("x.csv", text.encode()))
     message = str(problem.value)
-    assert message.count("is not a number") == io.MAX_PROBLEMS_SHOWN
+    assert message.count("is not a number") == 25
     assert "…and 75 more." in message
 
 
@@ -67,10 +84,12 @@ def test_bulk_results_import_keeps_blank_cells(campaign_with_creator) -> None:
 
 def test_launchers_and_docker_pass_the_upload_cap() -> None:
     bat = (ROOT / "run_app.bat").read_text(encoding="utf-8")
-    assert "set INFLUENCESIGNAL_MAX_UPLOAD_MB=1000" in bat
+    assert "set INFLUENCESIGNAL_MAX_UPLOAD_MB=10000" in bat
     assert "--server.maxUploadSize=%INFLUENCESIGNAL_MAX_UPLOAD_MB%" in bat
     command = (ROOT / "run_app.command").read_text(encoding="utf-8")
-    assert '--server.maxUploadSize="${INFLUENCESIGNAL_MAX_UPLOAD_MB:-1000}"' in command
+    assert '--server.maxUploadSize="${INFLUENCESIGNAL_MAX_UPLOAD_MB:-10000}"' in command
     docker = (ROOT / "Dockerfile").read_text(encoding="utf-8")
-    assert "STREAMLIT_SERVER_MAX_UPLOAD_SIZE=1000" in docker
+    assert "STREAMLIT_SERVER_MAX_UPLOAD_SIZE=10000" in docker
     assert "--server.maxUploadSize" not in docker
+    config = (ROOT / ".streamlit" / "config.toml").read_text(encoding="utf-8")
+    assert "maxUploadSize = 10000" in config

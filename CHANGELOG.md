@@ -4,13 +4,13 @@
 
 ### Larger datasets
 
-- **Larger datasets: uploads up to 1000 MB and 5,000,000 rows** (was 20 MB and 50,000 rows). Influence Signal is in the suite's data-heavy tier: one `MAX_UPLOAD_MB = 1000` constant drives the byte limit and its message, the XLSX expansion guard is 5000 MB (the old 5x ratio), and the 100-column limit is unchanged. A file over the row limit is refused with its row count and a suggestion to split it.
+- **Larger datasets: no built-in data limits when run locally** (was 20 MB, 50,000 rows, 100 columns and 100 MB of expanded XLSX). On your own computer, a local Signal Hub or an internal company deployment the file size, rows and columns are limited only by memory; running out of memory (including Arrow allocation failures) is reported as a plain message. A public demo (`SIGNAL_PUBLIC=1`) keeps the old values as demo caps, all in the new `influencesignal.limits` module, and its messages say the downloaded app has no such limit.
 - CSV uploads are parsed straight from the uploaded bytes into Arrow-backed text (no decoded copy of the file, a fraction of the memory of Python strings). `pyarrow` is now a declared dependency (it already came with Streamlit).
 - Creator and results validation is vectorized column by column, with the same checks and messages; plain numeric columns take one Arrow cast and only Norwegian-formatted cells (spaces, decimal commas, %, NOK/kr) take the clean-up path. Problem lists show the first 25 with a count of the rest instead of thousands of lines; the old quadratic duplicate check on `deliverable_id` is gone.
 - Imports are batched in one transaction: `Store.import_creators` converts 250,000 rows at a time and rolls everything back on a problem; the new `Store.import_results` applies a results table with blank cells left unchanged (as before). Measured on this machine: 5 million creators (555 MB) read in 15 s, validated in 20 s and imported in 39 s at 4.5 GB peak memory; 5 million results rows (190 MB) in 8 s, 6 s and 13 s at 2.8 GB.
 - Screens stay responsive with big workspaces: upload previews and the creator and per-creator tables show the first 1,000 rows with a note, creator pick lists show the first 2,000 matches (the shortlist picker gets a name search for large rosters), and the results chart shows the best 40 creators with a note. Every row is still validated, imported and exported.
-- Launchers accept `INFLUENCESIGNAL_MAX_UPLOAD_MB` (default 1000) for `--server.maxUploadSize`; the Dockerfile sets `STREAMLIT_SERVER_MAX_UPLOAD_SIZE=1000`. Signal Hub's public demo keeps its own 50 MB cap and Hub mode is unchanged.
-- New `tests/test_large_data.py`: the old row limit no longer blocks a 60,000-row roster, the new limit messages, the summarized problem list, blank-preserving bulk results import, and the launcher/Docker cap.
+- Launchers accept `INFLUENCESIGNAL_MAX_UPLOAD_MB` (default 10000) for `--server.maxUploadSize`; the Dockerfile sets `STREAMLIT_SERVER_MAX_UPLOAD_SIZE=10000`. Hub mode (`SIGNAL_HUB=1`) is unchanged.
+- New `tests/test_large_data.py`: local mode accepts a roster above the demo row and column caps, `SIGNAL_PUBLIC=1` enforces every cap with its demo message, out-of-memory becomes a plain message, the summarized problem list, blank-preserving bulk results import, and the launcher/Docker/config cap.
 
 ### Suite
 

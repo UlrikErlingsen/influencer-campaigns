@@ -19,6 +19,11 @@ def friendly_message(exc: Exception) -> str:
     """Return a useful message without exposing an internal traceback by default."""
     if isinstance(exc, DataProblem):
         return str(exc)
+    if isinstance(exc, MemoryError):  # includes pyarrow's ArrowMemoryError
+        return (
+            "There is not enough memory on this computer for this file or step. Close other programs, or split the "
+            "file and import it in parts."
+        )
     if isinstance(exc, ValueError):
         return f"Influence Signal could not complete that step: {exc}"
     return (
