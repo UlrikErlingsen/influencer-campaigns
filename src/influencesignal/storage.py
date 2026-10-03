@@ -17,11 +17,12 @@ import sqlite3
 import threading
 from typing import Iterator
 
+import numpy as np
 import pandas as pd
 
 from .compliance import GATED_STAGES, checklist_status, paid_gate
 from .errors import DataProblem, GateBlocked
-from .io import CREATOR_COLUMNS
+from .io import CREATOR_COLUMNS, casefold_text
 from .metrics import RESULT_COLUMNS
 from .rules import RuleSet
 from .utm import PLATFORMS, build_tracked_url, creator_token, slugify
@@ -42,6 +43,7 @@ CATEGORIES = ("general", "alcohol", "gambling", "tobacco_nicotine")
 DEFAULT_DATA_DIR = Path("data")
 DB_NAME = "influencesignal.db"
 MEMORY = ":memory:"
+IMPORT_CHUNK = 250_000  # rows converted to Python values at a time during bulk imports
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
@@ -262,19 +264,76 @@ class Store:
         with self._connect() as connection:
             connection.execute("DELETE FROM creators WHERE id = ?", (creator_id,))
 
+    def _creator_rows(self, frame: pd.DataFrame) -> pd.DataFrame:
+        """Vectorized ``_creator_values`` for a whole table: cleaned values as Python objects (None for blank)."""
+        values = pd.DataFrame(index=range(len(frame)))
+        for column in CREATOR_COLUMNS:
+            if column in ("followers", "engagement_rate"):
+                continue
+            series = frame[column].reset_index(drop=True) if column in frame.columns else pd.Series("", index=values.index)
+            text = series.astype(object).where(series.notna(), "").astype(str).str.strip()
+            values[column] = text.str.lstrip("@") if column in PLATFORMS else text
+        if values["name"].eq("").any():
+            raise DataProblem("A creator needs a name.")
+        for column in ("followers", "engagement_rate"):
+            series = frame[column].reset_index(drop=True) if column in frame.columns else pd.Series(None, index=values.index)
+            blank = series.isna() | series.astype(object).astype(str).str.strip().eq("")
+            numbers = pd.to_numeric(series.where(~blank, None).astype(object), errors="coerce").astype("float64")
+            bad = numbers.isna() & ~blank
+            if bad.any():
+                raise DataProblem(f"'{series[bad].iloc[0]}' is not a number.")
+            if numbers.lt(0).any():
+                raise DataProblem("Amounts and counts cannot be negative.")
+            values[column] = numbers
+        if values["engagement_rate"].gt(100).any():
+            raise DataProblem("Engagement rate is a percentage between 0 and 100.")
+        followers = values["followers"]
+        values["followers"] = followers.astype("Int64").astype(object).where(followers.notna(), None)
+        values["engagement_rate"] = values["engagement_rate"].astype(object).where(values["engagement_rate"].notna(), None)
+        return values[list(CREATOR_COLUMNS)]
+
     def import_creators(self, frame: pd.DataFrame) -> tuple[int, int]:
-        """Insert validated creators; rows whose name already exists update that creator. Returns (added, updated)."""
-        existing = {str(name).casefold(): int(cid) for cid, name in self.creators()[["id", "name"]].itertuples(index=False)}
-        added = updated = 0
-        for row in frame.to_dict("records"):
-            match = existing.get(str(row["name"]).casefold())
-            if match is None:
-                existing[str(row["name"]).casefold()] = self.add_creator(row)
-                added += 1
-            else:
-                self.update_creator(match, row)
-                updated += 1
-        return added, updated
+        """Insert validated creators; rows whose name already exists update that creator. Returns (added, updated).
+
+        One transaction with batched statements, converted IMPORT_CHUNK rows at a time, so a roster of millions of
+        rows imports in seconds without a second full copy of the table in Python objects. Any problem rolls the
+        whole import back.
+        """
+        if frame.empty:
+            return 0, 0
+        if "name" not in frame.columns:
+            raise DataProblem("A creator needs a name.")
+        frame = frame.reset_index(drop=True)
+        columns = list(CREATOR_COLUMNS)
+        marks = ", ".join("?" for _ in columns)
+        assignments = ", ".join(f"{column} = ?" for column in columns)
+        with self._connect() as connection:
+            existing = {
+                str(name).casefold(): int(cid) for cid, name in connection.execute("SELECT id, name FROM creators")
+            }
+            keys = casefold_text(frame["name"].astype(object).where(frame["name"].notna(), "").astype(str).str.strip())
+            ids = keys.map(existing) if existing else pd.Series(np.nan, index=frame.index)
+            is_new = ids.isna().to_numpy()
+            new_keys = keys.where(is_new)
+            # A name repeated inside the file: the first row adds the creator, later rows update it (last one wins).
+            first_new = is_new & ~(new_keys.duplicated(keep="first").to_numpy() & is_new)
+            last_new = is_new & ~(new_keys.duplicated(keep="last").to_numpy() & is_new)
+            added = int(first_new.sum())
+            for start in range(0, len(frame), IMPORT_CHUNK):
+                stop = start + IMPORT_CHUNK
+                values = self._creator_rows(frame.iloc[start:stop])
+                insert = last_new[start:stop]
+                connection.executemany(
+                    f"INSERT INTO creators ({', '.join(columns)}, is_demo) VALUES ({marks}, 0)",
+                    values[insert].itertuples(index=False, name=None),
+                )
+                update = ~is_new[start:stop]
+                if update.any():
+                    rows = values[update].assign(_id=ids.iloc[start:stop][update].astype("int64").to_numpy())
+                    connection.executemany(
+                        f"UPDATE creators SET {assignments} WHERE id = ?", rows.itertuples(index=False, name=None)
+                    )
+        return added, len(frame) - added
 
     # ── campaigns ────────────────────────────────────────────────────────────────────────────────
     def campaigns(self) -> pd.DataFrame:
@@ -498,6 +557,26 @@ class Store:
         assignments = ", ".join(f"{column} = ?" for column in values)
         with self._connect() as connection:
             connection.execute(f"UPDATE deliverables SET {assignments} WHERE id = ?", (*values.values(), deliverable_id))
+
+    def import_results(self, frame: pd.DataFrame) -> int:
+        """Apply a validated results table (``deliverable_id`` + result columns) in one transaction.
+
+        Blank cells leave the stored value unchanged, as the per-row import always did. Returns the rows applied.
+        """
+        columns = [column for column in RESULT_COLUMNS if column in frame.columns]
+        if frame.empty or not columns:
+            return 0
+        numbers = frame[columns].apply(pd.to_numeric, errors="coerce").astype("float64")
+        if numbers.lt(0).any().any():
+            raise DataProblem("Amounts and counts cannot be negative.")
+        rows = numbers.astype(object).where(numbers.notna(), None)
+        rows["deliverable_id"] = frame["deliverable_id"].astype("int64").to_numpy()
+        assignments = ", ".join(f"{column} = COALESCE(?, {column})" for column in columns)
+        with self._connect() as connection:
+            connection.executemany(
+                f"UPDATE deliverables SET {assignments} WHERE id = ?", rows.itertuples(index=False, name=None)
+            )
+        return len(rows)
 
     # ── checklist ────────────────────────────────────────────────────────────────────────────────
     def answers(self, deliverable_id: int) -> dict[str, str]:

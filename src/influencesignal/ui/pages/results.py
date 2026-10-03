@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pandas as pd
 import plotly.graph_objects as go
 import plotly.io as pio
 import streamlit as st
@@ -23,9 +22,11 @@ from ..shell import (
     demo_note,
     nok,
     num,
+    preview_table,
     require_campaign,
     store,
 )
+CHART_CREATORS = 40  # bars on the creator chart; the table below lists every creator
 
 
 def render() -> None:
@@ -64,6 +65,9 @@ def render() -> None:
         help="Defaults to the campaign goal: awareness → CPM, traffic → CPC, sales → cost per redemption.",
     )
     chart = per_creator.dropna(subset=[metric]).sort_values(metric, ascending=(metric != "roas"))
+    if len(chart) > CHART_CREATORS:
+        st.caption(f"The chart shows the best {CHART_CREATORS} of {len(chart):,} creators on this metric; the table lists all.")
+        chart = chart.head(CHART_CREATORS)
     if chart.empty:
         st.info("No creator has the results needed for this metric yet.")
     else:
@@ -85,7 +89,7 @@ def render() -> None:
         figure.update_layout(font=signal_layout.font, paper_bgcolor=signal_layout.paper_bgcolor,
                              plot_bgcolor=signal_layout.plot_bgcolor)
         sig.chart(KEY, figure, key=k("creator_chart"))  # per-app Signal template, Streamlit chart theme off
-    st.dataframe(
+    preview_table(
         per_creator,
         hide_index=True,
         width="stretch",
@@ -123,12 +127,12 @@ def render() -> None:
         st.caption("Required: `deliverable_id`. Any of " + ", ".join(f"`{c}`" for c in RESULT_IMPORT_COLUMNS[1:]) + ". Blank cells are left unchanged.")
         upload = st.file_uploader("Upload results (CSV or XLSX)", type=["csv", "xlsx"], key=k("results_upload"))
         if upload is not None:
-            clean = validate_results(read_table(upload.name, upload.getvalue()), set(deliverables["id"].astype(int)))
-            st.dataframe(clean, hide_index=True, width="stretch")
+            with st.spinner("Reading and validating the file…"):
+                clean = validate_results(read_table(upload.name, upload.getvalue()), set(deliverables["id"].astype(int)))
+            preview_table(clean, hide_index=True, width="stretch")
             if st.button("Import these results", type="primary", key=k("import_results")):
-                for row in clean.to_dict("records"):
-                    values = {k: v for k, v in row.items() if k != "deliverable_id" and v is not None and not pd.isna(v)}
-                    db.set_results(int(row["deliverable_id"]), values)
-                st.success(f"Imported results for {len(clean)} deliverables.")
+                with st.spinner("Importing…"):
+                    imported = db.import_results(clean)
+                st.success(f"Imported results for {imported:,} deliverables.")
     st.markdown("#### What these numbers can and cannot say")
     sig.note("boundary", "\n\n".join(GENERAL_NOTES))  # one note, one paragraph per caveat

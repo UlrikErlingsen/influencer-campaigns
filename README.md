@@ -78,7 +78,7 @@ Further limits:
 
 **Results CSV/XLSX.** Download the template from **6 · Results**: `deliverable_id` plus any of `reach`, `views`, `clicks`, `redemptions`, `revenue_nok`. Blank cells are left unchanged.
 
-Uploads are limited to 20 MB, 50,000 rows and 100 columns.
+**Large files.** Uploads are limited to 1000 MB (CSV recommended above ~50 MB; XLSX parsing is much slower), 5,000,000 rows and 100 columns. Validation and import run column by column and in one database transaction, so a roster or results file with millions of rows validates in seconds to a minute (measured: 5 million creators, 555 MB, about 75 seconds and 4.5 GB of memory end to end). Upload screens preview the first 1,000 rows, pick lists show the first 2,000 matches with a search box, and the results chart shows the best 40 creators; every row is still validated, imported and listed in the tables and exports. Inside Signal Hub the public demo keeps its 50 MB upload cap.
 
 ## Methods
 
@@ -151,7 +151,7 @@ python -m pip install -r requirements.txt
 python -m streamlit run app.py --server.port=8590
 ```
 
-Influence Signal prefers local port 8590; on macOS it falls back to a free port and, if the app is already running, just opens it. The launchers accept `INFLUENCESIGNAL_PORT` (and on macOS `INFLUENCESIGNAL_NO_BROWSER=1` to skip opening the browser). Set `INFLUENCESIGNAL_DEBUG=1` to show technical details for unexpected errors, and `INFLUENCESIGNAL_RULES=<path>` to load a different rules YAML.
+Influence Signal prefers local port 8590; on macOS it falls back to a free port and, if the app is already running, just opens it. The launchers accept `INFLUENCESIGNAL_PORT`, `INFLUENCESIGNAL_MAX_UPLOAD_MB` (upload cap in MB, default 1000, passed to `--server.maxUploadSize`) and, on macOS, `INFLUENCESIGNAL_NO_BROWSER=1` to skip opening the browser. Set `INFLUENCESIGNAL_DEBUG=1` to show technical details for unexpected errors, and `INFLUENCESIGNAL_RULES=<path>` to load a different rules YAML.
 
 ### Docker
 
@@ -160,7 +160,7 @@ docker build -t influencesignal .
 docker run --rm -p 8590:8590 -v influencesignal-data:/data influencesignal
 ```
 
-Then open http://127.0.0.1:8590. The container runs as a non-root user, stores the database in the `/data` volume and includes a health check. It has no authentication — do not expose it beyond your own machine without adding access control (see [SECURITY.md](SECURITY.md)).
+Then open http://127.0.0.1:8590. The container runs as a non-root user, stores the database in the `/data` volume and includes a health check. The upload cap is set with `STREAMLIT_SERVER_MAX_UPLOAD_SIZE=1000` in the image; override it with `docker run -e STREAMLIT_SERVER_MAX_UPLOAD_SIZE=<MB> …`. It has no authentication — do not expose it beyond your own machine without adding access control (see [SECURITY.md](SECURITY.md)).
 
 ### Inside Signal Hub
 

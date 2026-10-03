@@ -45,6 +45,9 @@ STATUS_ICONS = {
     STATUS_NOT_PUBLISHED: "·",
 }
 GOAL_METRIC = {"awareness": "cpm_nok", "traffic": "cpc_nok", "sales": "cost_per_redemption_nok"}
+# Large tables: the browser gets a preview, not millions of rows; pick lists get the first matches, not the roster.
+PREVIEW_ROWS = 1_000
+OPTION_LIMIT = 2_000
 HUB_WORKSPACE_NOTE = (
     "**Signal Hub demo workspace.** This session keeps its data in memory only, seeded with the fictional demo; "
     "nothing is saved and it is gone when you close the tab. Database folders are off in Signal Hub — run the app "
@@ -169,6 +172,25 @@ def creator_card(name: str, flags: str, meta_lines: list[str]) -> None:
         f'<div class="card-meta" style="font-size:.76rem;color:var(--sg-muted);line-height:1.35">{meta}</div>',
         unsafe_allow_html=True,
     )
+
+
+def preview_table(frame: pd.DataFrame, **kwargs) -> None:
+    """``st.dataframe`` for tables that can be huge: shows the first PREVIEW_ROWS rows and says so."""
+    if len(frame) > PREVIEW_ROWS:
+        st.caption(
+            f"Showing the first {PREVIEW_ROWS:,} of {len(frame):,} rows. Every row is validated and imported; "
+            "the preview only keeps the browser responsive."
+        )
+        frame = frame.head(PREVIEW_ROWS)
+    st.dataframe(frame, **kwargs)
+
+
+def limited_options(options: dict, what: str) -> dict:
+    """Cap a pick list at OPTION_LIMIT entries (a roster of millions would freeze the browser), with a visible note."""
+    if len(options) <= OPTION_LIMIT:
+        return options
+    st.caption(f"{len(options):,} {what} — the list shows the first {OPTION_LIMIT:,}. Search to narrow it down.")
+    return dict(list(options.items())[:OPTION_LIMIT])
 
 
 def nok(value: object, decimals: int = 0) -> str:

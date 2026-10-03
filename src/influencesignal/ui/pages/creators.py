@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pandas as pd
 import streamlit as st
 
 from influencesignal.io import (
@@ -20,6 +21,8 @@ from ..shell import (
     demo_note,
     float_or_none,
     int_or_none,
+    limited_options,
+    preview_table,
     store,
 )
 
@@ -38,14 +41,15 @@ def render() -> None:
     with st.container(border=True):
         cols = st.columns([2, 2, 2, 2])
         query = cols[0].text_input("Search name or handle", key=k("creator_search"))
-        all_tags = sorted({tag.strip() for tags in creators.get("niche_tags", []) for tag in str(tags).split(",") if tag.strip()})
+        tag_cells = creators["niche_tags"].astype(str).str.split(",").explode().str.strip() if not creators.empty else []
+        all_tags = sorted({tag for tag in pd.unique(pd.Series(tag_cells, dtype=object)) if tag and tag != "nan"})
         tags = cols[1].multiselect("Niche tags", all_tags, key=k("creator_tags"))
         regions = cols[2].multiselect("Region (fylke)", list(FYLKER), key=k("creator_regions"))
         platforms = cols[3].multiselect("Has a handle on", list(PLATFORMS), key=k("creator_platforms"))
     view = creators.copy()
     if query:
         needle = query.strip().lstrip("@").casefold()
-        haystack = view[["name", *PLATFORMS]].astype(str).apply(lambda row: " ".join(row).casefold(), axis=1)
+        haystack = view["name"].astype(str).str.cat([view[p].astype(str) for p in PLATFORMS], sep=" ").str.casefold()
         view = view[haystack.str.contains(needle, regex=False)]
     if tags:
         view = view[view["niche_tags"].apply(lambda value: any(tag in str(value).split(", ") for tag in tags))]
@@ -54,7 +58,7 @@ def render() -> None:
     for platform in platforms:
         view = view[view[platform].astype(str).str.len() > 0]
     st.caption(f"{len(view)} of {len(creators)} creators")
-    st.dataframe(
+    preview_table(
         view[["name", *PLATFORMS, "followers", "engagement_rate", "niche_tags", "region", "contact_email", "rate_card"]],
         hide_index=True,
         width="stretch",
@@ -76,7 +80,8 @@ def render() -> None:
         if creators.empty:
             st.caption("No creators yet.")
         else:
-            options = dict(zip(creators["id"], creators["name"]))
+            pool = view if not view.empty else creators
+            options = limited_options(dict(zip(pool["id"], pool["name"])), "creators match")
             chosen = st.selectbox("Creator", list(options), format_func=options.get, key=k("edit_creator_id"))
             current = db.creator(int(chosen))
             with st.form(k(f"edit_creator_{chosen}")):
@@ -107,14 +112,16 @@ def render() -> None:
         )
         upload = st.file_uploader("Upload creators (CSV or XLSX)", type=["csv", "xlsx"], key=k("creator_upload"))
         if upload is not None:
-            clean, warnings = validate_creators(read_table(upload.name, upload.getvalue()))
+            with st.spinner("Reading and validating the file…"):
+                clean, warnings = validate_creators(read_table(upload.name, upload.getvalue()))
             for warning in warnings:
                 st.warning(warning)
-            st.success(f"{len(clean)} rows passed validation. Review them, then import.")
-            st.dataframe(clean, hide_index=True, width="stretch")
+            st.success(f"{len(clean):,} rows passed validation. Review them, then import.")
+            preview_table(clean, hide_index=True, width="stretch")
             if st.button("Import these creators", type="primary", key=k("import_creators")):
-                added, updated = db.import_creators(clean)
-                st.success(f"Imported: {added} added, {updated} updated.")
+                with st.spinner("Importing…"):
+                    added, updated = db.import_creators(clean)
+                st.success(f"Imported: {added:,} added, {updated:,} updated.")
 
 
 def _creator_fields(current: dict, key: str) -> dict:

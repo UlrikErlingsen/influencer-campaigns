@@ -19,7 +19,9 @@ from ..shell import (
     current_rules,
     demo_note,
     handle_label,
+    OPTION_LIMIT,
     lane_title,
+    limited_options,
     nok,
     num,
     require_campaign,
@@ -61,7 +63,11 @@ def render() -> None:
     candidates = db.creators()
     candidates = candidates[~candidates["id"].isin(engagements["creator_id"])]
     with st.expander("Add creators to the shortlist"):
-        options = dict(zip(candidates["id"], candidates["name"]))
+        if len(candidates) > OPTION_LIMIT:
+            needle = st.text_input("Find creators by name", key=k("shortlist_search")).strip().casefold()
+            if needle:
+                candidates = candidates[candidates["name"].astype(str).str.casefold().str.contains(needle, regex=False)]
+        options = limited_options(dict(zip(candidates["id"], candidates["name"])), "creators")
         chosen = st.multiselect("Creators", list(options), format_func=options.get, key=k("shortlist_add"))
         if st.button("Add to shortlist", type="primary", disabled=not chosen, key=k("shortlist_submit")):
             db.add_to_shortlist(int(campaign["id"]), [int(value) for value in chosen])

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "influencesignal"
-version = "1.0.0"
+version = "1.1.0"
 description = "Influence Signal: open, local-first influencer campaign manager for the Norwegian market"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -31,6 +31,7 @@ dependencies = [
   "defusedxml>=0.7,<1",
   "openpyxl>=3.1,<4",
   "pandas>=2.0,<3",
+  "pyarrow>=14",
   "pyyaml>=6,<7",
 ]
 
