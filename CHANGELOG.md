@@ -14,7 +14,11 @@
 
 ### Suite
 
-- Suite: Rival, Reach, Learn and Blueprint Signal added to the suite table; the synced Signal config raises `maxUploadSize` to 1000.
+- Suite: Rival, Reach, Learn and Blueprint Signal added to the suite table; the synced Signal config raises `maxUploadSize` to 10000.
+
+### English
+
+- All app text is in English. The checklist shows English labels and questions only (the Norwegian label and question columns are gone from the rules file, the checklist, *Settings & data* and the report); source quotes stay verbatim in Norwegian and now carry an unofficial English translation (`quote_en`), shown first with the original below it. Law, regulator and source names keep their Norwegian name with an English gloss on first use (for example the Marketing Control Act (markedsføringsloven)). "Region (fylke)" is now "Region (county)" and the welcome pill reads "advertising-label checklist". The XLSX `rules_and_sources` sheet has `label`, `quote_english_unofficial` and `quote_original_norwegian` instead of `label_no`, `label_en` and `quote`. The demo stays Norwegian (names, campaigns, post texts), with a note that the tool is built for the Norwegian market. Checklist support, not legal advice.
 
 ## [1.0.0] - 2026-10-02
 

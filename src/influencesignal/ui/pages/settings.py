@@ -79,7 +79,7 @@ def render() -> None:
                     "Edit the YAML to change labels, questions or sources; the app picks up changes on the next "
                     "action.")
     st.dataframe(
-        pd.DataFrame([{"id": r.id, "label (no)": r.label_no, "label (en)": r.label_en, "applies when": r.applies_when,
+        pd.DataFrame([{"id": r.id, "label": r.label_en, "applies when": r.applies_when,
                        "source": r.primary_url or (r.categories[0].url if r.categories else "")} for r in rules.rules]),
         hide_index=True, width="stretch",
     )

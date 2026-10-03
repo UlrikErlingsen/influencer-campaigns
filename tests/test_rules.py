@@ -22,7 +22,7 @@ def test_bundled_rules_load_with_the_seeded_ids(rules) -> None:
 def test_every_rule_quotes_an_official_https_source(rules) -> None:
     official = ("https://www.forbrukertilsynet.no/", "https://lovdata.no/")
     for rule in rules.rules:
-        assert rule.label_no and rule.label_en and rule.question_no and rule.question_en
+        assert rule.label_en and rule.question_en
         if rule.applies_when == "restricted_category":
             assert {"alcohol", "gambling", "tobacco_nicotine", "children"} <= set(rule.categories_dict() if hasattr(rule, "categories_dict") else {c.key for c in rule.categories})
             continue
@@ -34,7 +34,7 @@ def test_label_wording_rule_quotes_forbrukertilsynet_recommendation(rules) -> No
     rule = rules.by_id("label_wording")
     quotes = " ".join(source.quote for source in rule.sources)
     assert "«sponset»" in quotes and "«i samarbeid med»" in quotes
-    assert "reklame" in rule.question_no and "annonse" in rule.question_no
+    assert "«reklame» (advertisement)" in rule.question_en and "«annonse» (advert)" in rule.question_en
     assert rule.primary_url == "https://www.forbrukertilsynet.no/lov-og-rett/veiledninger-og-retningslinjer/someveiledning"
 
 
@@ -83,3 +83,14 @@ def test_missing_and_malformed_files(tmp_path) -> None:
     bad.write_text("rules: [unclosed", encoding="utf-8")
     with pytest.raises(DataProblem, match="YAML"):
         load_rules(bad)
+
+
+def test_rules_are_english_with_translated_quotes(rules) -> None:
+    for rule in rules.rules:
+        assert not rule.label_no and not rule.question_no, rule.id  # the app shows English only
+        for source in rule.sources:
+            assert not source.quote or source.quote_en, (rule.id, source.title)
+        for category in rule.categories:
+            assert not category.quote or category.quote_en, (rule.id, category.key)
+    assert rules.by_id("retouch_label").not_applicable_label_en.startswith("Not applicable")
+    assert not rules.disclaimer_no

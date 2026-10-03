@@ -77,8 +77,13 @@ def test_report_xlsx_and_html(demo_store: Store, rules) -> None:
     read_me = {row[0]: row[1] for row in workbook["read_me"].iter_rows(min_row=2, values_only=True)}
     assert read_me["compliance_disclaimer"] == DISCLAIMER
     assert read_me["demo_notice"] == DEMO_NOTICE
-    sources = [row[4] for row in workbook["rules_and_sources"].iter_rows(min_row=2, values_only=True)]
+    rows = list(workbook["rules_and_sources"].iter_rows(values_only=True))
+    header = list(rows[0])
+    assert header == ["rule_id", "label", "legal_basis", "source_url", "quote_english_unofficial",
+                      "quote_original_norwegian"]
+    sources = [row[header.index("source_url")] for row in rows[1:]]
     assert any(str(url).startswith("https://www.forbrukertilsynet.no/") for url in sources)
+    assert all(row[header.index("quote_english_unofficial")] for row in rows[1:] if row[header.index("quote_original_norwegian")])
 
     html = build_html(report)
     assert DISCLAIMER in html

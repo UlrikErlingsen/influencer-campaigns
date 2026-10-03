@@ -24,7 +24,7 @@ def render() -> None:
         em="labelled properly?",
         body="Run the whole campaign in one local app: roster, pipeline, deliverables with tracked links and codes, "
         "results at cost per result, and a Norwegian advertising-label checklist on every published post.",
-        pills=["creator roster", "kanban pipeline", "UTM links & codes", "«reklame» checklist", "retouching mark",
+        pills=["creator roster", "kanban pipeline", "UTM links & codes", "advertising-label checklist", "retouching mark",
                "CPM · CPC · ROAS", "XLSX + one-page report"],
     )
     demo_note(store().has_demo_data())

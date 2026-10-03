@@ -113,8 +113,8 @@ def render() -> None:
         new_answers = {}
         for rule in applicable_rules(deliverable, campaign, rules):
             with st.container(border=True):
-                st.markdown(f"**{rule.label_no}** · {rule.label_en}")
-                st.markdown(f"{rule.question_no}  \n*{rule.question_en}*")
+                st.markdown(f"**{rule.label_en}**")
+                st.markdown(rule.question_en)
                 choices = ["", "yes", "no"] + (["na"] if rule.allow_not_applicable else [])
                 names = {"": "Not answered", "yes": "Yes", "no": "No", "na": rule.not_applicable_label_en}
                 current = answers.get(rule.id, "")
@@ -129,14 +129,12 @@ def render() -> None:
                         st.caption(f"Legal basis: {rule.legal_basis}")
                     for source in rule.sources:
                         st.markdown(f"[{source.title}]({source.url})")
-                        if source.quote:
-                            st.markdown(f"> «{source.quote}»")
+                        _quote(source.quote, source.quote_en)
                         st.caption(f"Fetched {source.fetched}. Verify the current wording at the source.")
                     for key in campaign_restricted_categories(campaign, rules) if rule.applies_when == "restricted_category" else []:
                         category = rules.restricted_categories[key]
                         st.markdown(f"[{category.label}]({category.url}) — {category.note}")
-                        if category.quote:
-                            st.markdown(f"> «{category.quote}»")
+                        _quote(category.quote, category.quote_en)
         if st.form_submit_button("Save checklist", type="primary", key=k(f"save_checklist_{chosen}")):
             for rule_id, answer in new_answers.items():
                 db.set_answer(int(chosen), rule_id, answer or None)
@@ -160,3 +158,13 @@ def render() -> None:
         if st.form_submit_button("Save override reason", key=k(f"save_override_{chosen}")):
             db.set_override(int(chosen), reason)
             st.rerun()
+
+
+def _quote(original: str, english: str) -> None:
+    """A source quote: the unofficial English translation first, the verbatim Norwegian original below it."""
+    if english:
+        st.markdown(f"> {english}")
+        if original:
+            st.caption(f"Original (Norwegian): «{original}» — English translation is unofficial.")
+    elif original:
+        st.markdown(f"> «{original}»")

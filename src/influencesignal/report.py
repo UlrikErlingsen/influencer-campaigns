@@ -71,7 +71,7 @@ def build_report(store: Store, campaign_id: int, rules: RuleSet) -> CampaignRepo
                     "platform": row["platform"],
                     "format": row["format"],
                     "rule_id": rule.id,
-                    "rule": f"{rule.label_en} / {rule.label_no}",
+                    "rule": rule.label_en,
                     "answer": ANSWER_LABELS.get(answers.get(rule.id, ""), answers.get(rule.id, "")),
                     "source_url": rule.primary_url or (rule.categories[0].url if rule.categories else ""),
                 }
@@ -165,11 +165,11 @@ def build_xlsx(report: CampaignReport) -> bytes:
         rules_rows = [
             {
                 "rule_id": rule.id,
-                "label_no": rule.label_no,
-                "label_en": rule.label_en,
+                "label": rule.label_en,
                 "legal_basis": rule.legal_basis,
                 "source_url": rule.primary_url,
-                "quote": rule.sources[0].quote if rule.sources else "",
+                "quote_english_unofficial": rule.sources[0].quote_en if rule.sources else "",
+                "quote_original_norwegian": rule.sources[0].quote if rule.sources else "",
             }
             for rule in report.rules.rules
         ]

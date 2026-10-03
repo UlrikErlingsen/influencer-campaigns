@@ -1,126 +1,147 @@
-# InfluenceSignal — Norwegian advertising checklist rules
+# Influence Signal — Norwegian advertising checklist rules
 #
 # Checklist support, not legal advice. These rules help a team record what it checked; they do not
 # establish that a post is lawful. Edit this file to adapt the checklist — no code changes needed.
 #
+# All checklist text is in English. Source quotes stay in the original Norwegian (verbatim, as fetched) and carry
+# an unofficial English translation in quote_en, which the app shows first.
 # Quotes below were fetched from the official source pages on 2026-10-01 via automated page extraction.
 # Before relying on a quote, open the source URL and confirm the exact wording is still current.
 # Items marked TODO(verify) are details the official pages did not state clearly when fetched.
 #
 # Schema (validated by influencesignal.rules.load_rules):
 #   id                  unique snake_case identifier (stored with each answer; do not rename once used)
-#   label.no / .en      short checklist label
-#   question.no / .en   the yes/no question the reviewer answers
+#   label.en            short checklist label
+#   question.en         the yes/no question the reviewer answers
 #   applies_when        always | shows_person | format_story | restricted_category
 #   check               yes_no (answer yes / no) or acknowledge (restricted categories: yes = reviewed)
-#   allow_not_applicable  true lets the reviewer answer "not applicable" (with not_applicable_label)
+#   allow_not_applicable  true lets the reviewer answer "not applicable" (with not_applicable_label.en)
 #   legal_basis         plain-text reference
-#   sources             list of {title, url, quote, fetched}
-#   help.en             reviewer guidance in English
+#   sources             list of {title, url, quote (original wording), quote_en (unofficial translation), fetched}
+#   help.en             reviewer guidance
+# Optional Norwegian keys (label.no, question.no) are still accepted for custom rule files but not shown.
 
 version: 1
 jurisdiction: "NO"
 fetched: "2026-10-01"
 disclaimer:
   en: "Checklist support, not legal advice."
-  "no": "Sjekklistestøtte, ikke juridisk rådgivning."
 
 rules:
   - id: ad_identified
     label:
-      "no": "Tydelig merket som reklame"
       en: "Advertising clearly identified"
     question:
-      "no": "Er merkingen plassert helt i starten, synlig umiddelbart uten å trykke «mer» eller scrolle?"
       en: "Is the advertising label at the very start, visible immediately without tapping 'more' or scrolling?"
     applies_when: always
     check: yes_no
     allow_not_applicable: false
     legal_basis: >-
-      Markedsføringsloven § 8 første ledd (villedende utelatelser — kommersielt formål) and ehandelsloven § 9,
-      as cited in Forbrukertilsynet's guide. Note: older material cites markedsføringsloven § 3; since
-      1 October 2023 § 3 concerns documentation of marketing claims, so InfluenceSignal cites § 8 as the guide does.
+      Section 8, first paragraph, of the Marketing Control Act (markedsføringsloven § 8: misleading omissions —
+      commercial purpose) and section 9 of the E-Commerce Act (ehandelsloven § 9), as cited in the guide from
+      Forbrukertilsynet (the Norwegian Consumer Authority). Note: older material cites markedsføringsloven § 3;
+      since 1 October 2023 § 3 concerns documentation of marketing claims, so Influence Signal cites § 8 as the
+      guide does.
     sources:
-      - title: "Forbrukertilsynet — Veileder for merking av reklame i sosiale medier (sist oppdatert 18. mai 2026)"
+      - title: >-
+          Forbrukertilsynet (Norwegian Consumer Authority) — Guide to labelling advertising in social media
+          (Veileder for merking av reklame i sosiale medier), last updated 18 May 2026
         url: "https://www.forbrukertilsynet.no/lov-og-rett/veiledninger-og-retningslinjer/someveiledning"
         quote: "En forbruker skal aldri måtte lete eller scrolle i et innlegg for å oppdage at det er reklame."
+        quote_en: "A consumer should never have to search or scroll in a post to discover that it is advertising."
         fetched: "2026-10-01"
       - title: "Forbrukertilsynet — same guide, placement of text labels"
         url: "https://www.forbrukertilsynet.no/lov-og-rett/veiledninger-og-retningslinjer/someveiledning"
         quote: >-
           ikke plasseres sist i teksten, kommer så langt ned i teksten at den ikke synes uten aktivt å måtte
           trykke på knapper som «mer» eller «see more».
+        quote_en: >-
+          [the label must] not be placed last in the text, or so far down in the text that it cannot be seen
+          without actively tapping buttons such as «mer» (more) or «see more».
         fetched: "2026-10-01"
-      - title: "Lovdata — Markedsføringsloven § 8"
+      - title: "Lovdata (official Norwegian legal database) — Marketing Control Act (markedsføringsloven) § 8"
         url: "https://lovdata.no/dokument/NL/lov/2009-01-09-2/§8"
         quote: >-
           En handelspraksis er villedende dersom den, i sin konkrete sammenheng og etter en helhetsvurdering,
           utelater eller skjuler vesentlige opplysninger som forbrukerne ut fra sammenhengen trenger for å kunne
           ta en informert økonomisk beslutning eller presenterer opplysningene på en uklar, uforståelig,
           tvetydig eller uhensiktsmessig måte.
+        quote_en: >-
+          A commercial practice is misleading if, in its specific context and on an overall assessment, it omits
+          or hides material information that consumers need, given the context, to take an informed economic
+          decision, or presents that information in an unclear, unintelligible, ambiguous or inappropriate way.
         fetched: "2026-10-01"
     help:
       en: >-
         Check the published post, not the draft. For video (TikTok, Reels, YouTube) the guide notes the caption is
-        easy to miss, so it may be necessary to label the video itself with «reklame» or «annonse» as well.
+        easy to miss, so it may be necessary to label the video itself with «reklame» (advertisement) or
+        «annonse» (advert) as well.
 
   - id: label_wording
     label:
-      "no": "Anbefalt ordlyd i merkingen"
       en: "Recommended label wording"
     question:
-      "no": "Bruker merkingen ordet «reklame» eller «annonse» (eller «reklamelenke»/«annonselenke» for lenker)?"
-      en: "Does the label use the word «reklame» or «annonse» (or «reklamelenke»/«annonselenke» for links)?"
+      en: >-
+        Does the label use the word «reklame» (advertisement) or «annonse» (advert) — or «reklamelenke» /
+        «annonselenke» (advertising link) for links?
     applies_when: always
     check: yes_no
     allow_not_applicable: false
     legal_basis: "Forbrukertilsynet's guidance on how to meet markedsføringsloven § 8 for social-media advertising."
     sources:
-      - title: "Forbrukertilsynet — Veileder for merking av reklame i sosiale medier (sist oppdatert 18. mai 2026)"
+      - title: >-
+          Forbrukertilsynet — Guide to labelling advertising in social media (Veileder for merking av reklame i
+          sosiale medier), last updated 18 May 2026
         url: "https://www.forbrukertilsynet.no/lov-og-rett/veiledninger-og-retningslinjer/someveiledning"
         quote: >-
           Forbrukertilsynet anbefaler f.eks. ikke ord som «sponset», «i samarbeid med», «affiliatelenke»,
           «anbefaling for», «konkurranse», «gifted», «gave», «ambassadør», «invitert» og lignende.
+        quote_en: >-
+          Forbrukertilsynet does not recommend, for example, words such as «sponset» (sponsored), «i samarbeid med»
+          (in collaboration with), «affiliatelenke» (affiliate link), «anbefaling for» (recommendation for),
+          «konkurranse» (competition), «gifted», «gave» (gift), «ambassadør» (ambassador), «invitert» (invited)
+          and the like.
         fetched: "2026-10-01"
-      - title: "Forbrukertilsynet — same guide, on the platforms' «Betalt partnerskap» tool"
+      - title: "Forbrukertilsynet — same guide, on the platforms' «Betalt partnerskap» (Paid partnership) tool"
         url: "https://www.forbrukertilsynet.no/lov-og-rett/veiledninger-og-retningslinjer/someveiledning"
         quote: "Forbrukertilsynet er av den oppfatning at standardmerkingen ikke tydeliggjør på en god måte at innlegget er reklame."
+        quote_en: "Forbrukertilsynet takes the view that the standard label does not make it sufficiently clear that the post is advertising."
         fetched: "2026-10-01"
     help:
       en: >-
-        Words the guide treats as clear: «Reklame», «Annonse», and «Reklamelenke»/«Annonselenke» for affiliate or
-        tracked links. The platform's own «Betalt partnerskap» tag alone is not enough in the regulator's view;
-        add «reklame» or «annonse» as well. Answer No if the post uses words such as «sponset», «samarbeid» or #ad.
+        Words the guide treats as clear: «Reklame» (advertisement), «Annonse» (advert), and «Reklamelenke» /
+        «Annonselenke» (advertising link) for affiliate or tracked links. The platform's own «Betalt partnerskap»
+        (Paid partnership) tag alone is not enough in the regulator's view; add «reklame» or «annonse» as well.
+        Answer No if the post uses words such as «sponset» (sponsored), «samarbeid» (collaboration) or #ad.
 
   - id: stories_each_labelled
     label:
-      "no": "Hver story er merket"
       en: "Every story frame labelled"
     question:
-      "no": "Er hver enkelt story i serien tydelig merket — ikke bare den første?"
       en: "Is every story in the sequence clearly labelled — not only the first one?"
     applies_when: format_story
     check: yes_no
     allow_not_applicable: false
     legal_basis: "Forbrukertilsynet's guidance on how to meet markedsføringsloven § 8 for social-media advertising."
     sources:
-      - title: "Forbrukertilsynet — Veileder for merking av reklame i sosiale medier (sist oppdatert 18. mai 2026)"
+      - title: >-
+          Forbrukertilsynet — Guide to labelling advertising in social media (Veileder for merking av reklame i
+          sosiale medier), last updated 18 May 2026
         url: "https://www.forbrukertilsynet.no/lov-og-rett/veiledninger-og-retningslinjer/someveiledning"
         quote: >-
           Dersom det legges ut flere «stories», skal alle innlegg være tydelig merket. Det er ikke tilstrekkelig
           at kun den første «storien» er merket.
+        quote_en: >-
+          If several stories are posted, every post must be clearly labelled. It is not sufficient for only the
+          first story to be labelled.
         fetched: "2026-10-01"
     help:
       en: "Stories can last only a few seconds, so the guide asks for an even clearer label on each frame."
 
   - id: retouch_label
     label:
-      "no": "Merke for retusjert reklame"
       en: "Retouched-advertising label"
     question:
-      "no": >-
-        Hvis kroppens fasong, størrelse eller hud er endret (også med filter), vises standardmerket for retusjert
-        reklame?
       en: >-
         If body shape, size or skin has been altered (filters included), is the standard retouched-advertising
         mark shown?
@@ -128,110 +149,142 @@ rules:
     check: yes_no
     allow_not_applicable: true
     not_applicable_label:
-      "no": "Ikke aktuelt — ingen endring av kroppens fasong, størrelse eller hud (heller ikke filter)"
       en: "Not applicable — no alteration of body shape, size or skin (no filters either)"
     legal_basis: >-
-      Markedsføringsloven § 2 (amended by lov 11. juni 2021 nr. 62, in force 1 July 2022; Prop. 134 L (2020–2021))
-      and forskrift om merking av retusjert reklame (FOR-2022-06-17-1114), which applies to advertising published
+      Section 2 of the Marketing Control Act (markedsføringsloven § 2, amended by Act of 11 June 2021 no. 62, in
+      force 1 July 2022; bill Prop. 134 L (2020–2021)) and the Regulation on labelling of retouched advertising
+      (forskrift om merking av retusjert reklame, FOR-2022-06-17-1114), which applies to advertising published
       from 1 July 2022.
     sources:
-      - title: "Forbrukertilsynet — Merking av retusjert reklame (sist oppdatert 11. april 2025)"
+      - title: >-
+          Forbrukertilsynet — Labelling of retouched advertising (Merking av retusjert reklame), last updated
+          11 April 2025
         url: "https://www.forbrukertilsynet.no/vi-jobber-med/merking-av-retusjert-reklame"
         quote: >-
           Fra og med 1. juli 2022 krever markedsføringsloven at all reklame der en kropps fasong, størrelse eller
           hud er endret ved retusjering eller annen manipulering, skal merkes med et standardmerke.
+        quote_en: >-
+          From 1 July 2022 the Marketing Control Act requires all advertising in which a body's shape, size or
+          skin has been altered by retouching or other manipulation to be labelled with a standard mark.
         fetched: "2026-10-01"
-      - title: "Lovdata — Forskrift om merking av retusjert reklame (FOR-2022-06-17-1114) § 1"
+      - title: >-
+          Lovdata — Regulation on labelling of retouched advertising (forskrift om merking av retusjert reklame,
+          FOR-2022-06-17-1114) § 1
         url: "https://lovdata.no/dokument/SF/forskrift/2022-06-17-1114"
         quote: >-
           Merket skal utgjøre en kontrast til bakgrunnen og utgjøre omtrent 7 % av bildeflaten. Merket skal
           plasseres i øvre venstre hjørne på reklamen, under eventuelle filtre og brukernavn, med mindre det står
           et annet påbudt merke i dette hjørnet. I så fall skal merket plasseres i et annet hjørne.
+        quote_en: >-
+          The mark must contrast with the background and cover about 7 % of the image area. The mark must be
+          placed in the upper left corner of the advertisement, below any filters and usernames, unless another
+          mandatory mark is in that corner. In that case the mark must be placed in another corner.
         fetched: "2026-10-01"
       - title: "Lovdata — same regulation § 1, video"
         url: "https://lovdata.no/dokument/SF/forskrift/2022-06-17-1114"
         quote: "For reklamefilmer skal merket bli stående under hele filmen."
+        quote_en: "In advertising films the mark must remain on screen for the whole film."
         fetched: "2026-10-01"
-      - title: "Forbrukertilsynet — Veileder for merking av retusjert reklame (sist oppdatert 18. august 2026)"
+      - title: >-
+          Forbrukertilsynet — Guide to labelling retouched advertising (Veileder for merking av retusjert reklame),
+          last updated 18 August 2026
         url: "https://www.forbrukertilsynet.no/vi-jobber-med/merking-av-retusjert-reklame/forbrukertilsynets-veiledning-om-merking-av-retusjert-reklame"
         quote: "Ettersom merket inneholder ordet «REKLAME»"
+        quote_en: "Since the mark contains the word «REKLAME» (advertisement)"
         fetched: "2026-10-01"
-      - title: "Forbrukertilsynet — Ofte stilte spørsmål om retusjert reklame (sist oppdatert 29. september 2025)"
+      - title: >-
+          Forbrukertilsynet — Frequently asked questions about retouched advertising (Ofte stilte spørsmål om
+          retusjert reklame), last updated 29 September 2025
         url: "https://www.forbrukertilsynet.no/vi-jobber-med/merking-av-retusjert-reklame/ofte-stilte-sporsmal-om-retusjert-reklame"
         quote: "Digital sminke er derimot omfattet av merkeplikten"
+        quote_en: "Digital make-up, on the other hand, is covered by the labelling requirement"
         fetched: "2026-10-01"
-      - title: "Lovdata — Markedsføringsloven § 2"
+      - title: "Lovdata — Marketing Control Act (markedsføringsloven) § 2"
         url: "https://lovdata.no/dokument/NL/lov/2009-01-09-2"
         quote: >-
           Annonsør og den som utformer reklame, skal videre sørge for at reklamen der en kropps fasong, størrelse
           eller hud er endret ved retusjering eller annen manipulering, skal merkes.
+        quote_en: >-
+          The advertiser and whoever designs the advertising must further ensure that advertising in which a
+          body's shape, size or skin has been altered by retouching or other manipulation is labelled.
         fetched: "2026-10-01"
     help:
       en: >-
-        Check four things on the published post: the official mark is used (it contains the word «REKLAME»); it
-        covers about 7 % of the image and contrasts with the background; it sits in the upper left corner, below
-        any filters and usernames (another corner only if a different mandatory mark already occupies it); and in
-        video it stays on screen for the whole film. Use the official file from Forbrukertilsynet's marking
-        service (https://retusjert.forbrukertilsynet.no/) rather than recreating it.
+        Check four things on the published post: the official mark is used (it contains the word «REKLAME»,
+        advertisement); it covers about 7 % of the image and contrasts with the background; it sits in the upper
+        left corner, below any filters and usernames (another corner only if a different mandatory mark already
+        occupies it); and in video it stays on screen for the whole film. Use the official file from
+        Forbrukertilsynet's marking service (https://retusjert.forbrukertilsynet.no/) rather than recreating it.
         Physical make-up and styling before the shoot are not covered; digital make-up and appearance-changing
         filters are. The advertiser stays responsible even when the creator publishes.
-        Note: Forbrukertilsynet's overview page (updated April 2025) says "venstre hjørne" with the right corner as
-        a fallback; the regulation text above (upper left, another corner only for another mandatory mark) governs.
+        Note: Forbrukertilsynet's overview page (updated April 2025) says "left corner" (venstre hjørne) with the
+        right corner as a fallback; the regulation text above (upper left, another corner only for another
+        mandatory mark) governs.
 
   - id: restricted_category
     label:
-      "no": "Kategori med strengere regler"
       en: "Restricted category flag"
     question:
-      "no": >-
-        Kampanjen er i en kategori med strengere norske regler. Har en kvalifisert person gjennomgått reglene
-        for denne kategorien før publisering?
       en: >-
         This campaign is in a category with stricter Norwegian rules. Has a qualified person reviewed the
         category-specific rules before publishing?
     applies_when: restricted_category
     check: acknowledge
     allow_not_applicable: false
-    legal_basis: "Category-specific legislation — see the linked sources. InfluenceSignal flags only; it never assesses these rules."
+    legal_basis: "Category-specific legislation — see the linked sources. Influence Signal flags only; it never assesses these rules."
     categories:
       alcohol:
         label: "Alcohol"
         url: "https://lovdata.no/dokument/NL/lov/1989-06-02-27/§9-2"
         quote: "Reklame for alkoholholdig drikk er forbudt."
-        note: "Alkoholloven § 9-2. Norway has a general ban on alcohol advertising."
+        quote_en: "Advertising for alcoholic beverages is prohibited."
+        note: "Section 9-2 of the Alcohol Act (alkoholloven § 9-2). Norway has a general ban on alcohol advertising."
       tobacco_nicotine:
         label: "Tobacco / nicotine"
         url: "https://lovdata.no/dokument/NL/lov/1973-03-09-14/§22"
         quote: "Alle former for reklame for tobakksvarer er forbudt."
+        quote_en: "All forms of advertising for tobacco products are prohibited."
         note: >-
-          Tobakksskadeloven § 22. The ban applies equally to tobakkssurrogater, tobakksimitasjoner and
-          tobakksutstyr (§ 22, fifth paragraph); snus is a tobacco product. Helsedirektoratet's guide
-          (https://www.helsedirektoratet.no/veiledere/tobakksskadeloven/reklameforbud, updated 12 May 2026) says
+          Section 22 of the Tobacco Control Act (tobakksskadeloven § 22). The ban applies equally to tobacco
+          surrogates, tobacco imitations and tobacco accessories (tobakkssurrogater, tobakksimitasjoner and
+          tobakksutstyr; § 22, fifth paragraph); snus is a tobacco product. The guide from Helsedirektoratet (the
+          Norwegian Directorate of Health,
+          https://www.helsedirektoratet.no/veiledere/tobakksskadeloven/reklameforbud, updated 12 May 2026) says
           the ban applies in all media including Instagram, Snapchat, TikTok and YouTube, and that profiles of
           people closely connected to the business promoting its products can circumvent the ban.
-          TODO(verify): whether the ban covers "nikotinprodukter" as defined in § 2 (for example nicotine pouches
-          with nicotine but no tobacco). Neither § 22 nor Helsedirektoratet's guide names them; the guide's
-          surrogate examples are nicotine-free products.
+          TODO(verify): whether the ban covers nicotine products ("nikotinprodukter") as defined in § 2 (for
+          example nicotine pouches with nicotine but no tobacco). Neither § 22 nor Helsedirektoratet's guide names
+          them; the guide's surrogate examples are nicotine-free products.
       gambling:
         label: "Gambling"
         url: "https://lovdata.no/dokument/NL/lov/2022-03-18-12/§6"
         quote: >-
           Pengespill kan bare markedsføres så langt det er nødvendig for å informere om spilltilbudet og å lede
           spillelysten i samfunnet til ansvarlige og trygge spilltilbud.
+        quote_en: >-
+          Gambling may be marketed only as far as necessary to inform about the gambling offer and to channel
+          the public's urge to gamble towards responsible and safe gambling offers.
         note: >-
-          Pengespilloven § 6. It forbids marketing gambling not permitted under the act, marketing gambling to
-          minors, and direct marketing to people who have opted out. Detailed rules are in pengespillforskriften
-          (https://lovdata.no/dokument/SF/forskrift/2022-11-17-1978). Lotteri- og stiftelsestilsynet enforces.
+          Section 6 of the Gambling Act (pengespilloven § 6). It forbids marketing gambling not permitted under
+          the act, marketing gambling to minors, and direct marketing to people who have opted out. Detailed rules
+          are in the Gambling Regulation (pengespillforskriften,
+          https://lovdata.no/dokument/SF/forskrift/2022-11-17-1978). Lotteri- og stiftelsestilsynet (the
+          Norwegian Gaming Authority) enforces.
       children:
         label: "Targets children"
         url: "https://lovdata.no/dokument/NL/lov/2009-01-09-2/§19"
         quote: >-
           Når en handelspraksis rettes mot barn, eller for øvrig kan ses eller høres av barn, skal det vises særlig
           aktsomhet overfor barns påvirkelighet, manglende erfaring og naturlige godtroenhet.
+        quote_en: >-
+          When a commercial practice is directed at children, or can otherwise be seen or heard by children,
+          particular care must be shown with regard to children's susceptibility, lack of experience and natural
+          credulity.
         note: >-
-          Markedsføringsloven §§ 19–21 (protection of children). Forbrukertilsynet's guidance:
+          Sections 19–21 of the Marketing Control Act (markedsføringsloven §§ 19–21, protection of children).
+          Forbrukertilsynet's guidance:
           https://www.forbrukertilsynet.no/vi-jobber-med/barn-og-unge/barn-og-reklame/barn-kan-se-og-hore-reklamen-din
     help:
       en: >-
-        A flag, not an assessment. InfluenceSignal never says a restricted-category campaign is compliant; answering
-        Yes only records that someone reviewed the category rules.
+        A flag, not an assessment. Influence Signal never says a restricted-category campaign is compliant;
+        answering Yes only records that someone reviewed the category rules.

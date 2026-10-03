@@ -18,7 +18,8 @@ from .io import FYLKER
 
 DEMO_NOTICE = (
     "Fictional demo: the brand Fjellbrus, every creator, handle, campaign and number here is invented by code. "
-    "It represents no real person, brand or result."
+    "It represents no real person, brand or result. The demo is Norwegian because the tool is built for the "
+    "Norwegian market."
 )
 SEED = 20261001
 

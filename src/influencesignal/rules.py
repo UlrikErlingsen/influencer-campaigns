@@ -20,8 +20,9 @@ _ID = re.compile(r"^[a-z][a-z0-9_]*$")
 class Source:
     title: str
     url: str
-    quote: str = ""
+    quote: str = ""  # original wording, verbatim from the source
     fetched: str = ""
+    quote_en: str = ""  # unofficial English translation shown first
 
 
 @dataclass(frozen=True)
@@ -31,6 +32,7 @@ class Category:
     url: str
     quote: str = ""
     note: str = ""
+    quote_en: str = ""
 
 
 @dataclass(frozen=True)
@@ -47,7 +49,7 @@ class Rule:
     sources: tuple[Source, ...]
     help_en: str = ""
     not_applicable_label_en: str = "Not applicable"
-    not_applicable_label_no: str = "Ikke aktuelt"
+    not_applicable_label_no: str = ""  # optional; the app shows English only
     categories: tuple[Category, ...] = field(default_factory=tuple)
 
     @property
@@ -121,6 +123,7 @@ def _parse_rule(raw: object, position: int) -> Rule:
                 url=url,
                 quote=_text(source, "quote", f"{where}.sources[{index}]", required=False),
                 fetched=str(source.get("fetched", "") or ""),
+                quote_en=_text(source, "quote_en", f"{where}.sources[{index}]", required=False),
             )
         )
 
@@ -140,6 +143,7 @@ def _parse_rule(raw: object, position: int) -> Rule:
                     url=url,
                     quote=_text(category, "quote", f"{where}.categories.{key}", required=False),
                     note=_text(category, "note", f"{where}.categories.{key}", required=False),
+                    quote_en=_text(category, "quote_en", f"{where}.categories.{key}", required=False),
                 )
             )
     if not sources and not categories:
@@ -148,9 +152,9 @@ def _parse_rule(raw: object, position: int) -> Rule:
     not_applicable = raw.get("not_applicable_label") or {}
     return Rule(
         id=rule_id,
-        label_no=_text(raw.get("label"), "no", f"{where}.label"),
+        label_no=_text(raw.get("label"), "no", f"{where}.label", required=False),
         label_en=_text(raw.get("label"), "en", f"{where}.label"),
-        question_no=_text(raw.get("question"), "no", f"{where}.question"),
+        question_no=_text(raw.get("question"), "no", f"{where}.question", required=False),
         question_en=_text(raw.get("question"), "en", f"{where}.question"),
         applies_when=applies_when,
         check=check,
@@ -159,7 +163,7 @@ def _parse_rule(raw: object, position: int) -> Rule:
         sources=tuple(sources),
         help_en=_text(raw.get("help") or {}, "en", f"{where}.help", required=False),
         not_applicable_label_en=not_applicable.get("en", "Not applicable") if isinstance(not_applicable, dict) else "Not applicable",
-        not_applicable_label_no=not_applicable.get("no", "Ikke aktuelt") if isinstance(not_applicable, dict) else "Ikke aktuelt",
+        not_applicable_label_no=not_applicable.get("no", "") if isinstance(not_applicable, dict) else "",
         categories=tuple(categories),
     )
 

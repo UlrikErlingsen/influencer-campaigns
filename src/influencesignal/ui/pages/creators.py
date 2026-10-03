@@ -44,7 +44,7 @@ def render() -> None:
         tag_cells = creators["niche_tags"].astype(str).str.split(",").explode().str.strip() if not creators.empty else []
         all_tags = sorted({tag for tag in pd.unique(pd.Series(tag_cells, dtype=object)) if tag and tag != "nan"})
         tags = cols[1].multiselect("Niche tags", all_tags, key=k("creator_tags"))
-        regions = cols[2].multiselect("Region (fylke)", list(FYLKER), key=k("creator_regions"))
+        regions = cols[2].multiselect("Region (county)", list(FYLKER), key=k("creator_regions"))
         platforms = cols[3].multiselect("Has a handle on", list(PLATFORMS), key=k("creator_platforms"))
     view = creators.copy()
     if query:
@@ -142,7 +142,7 @@ def _creator_fields(current: dict, key: str) -> dict:
     data["niche_tags"] = st.text_input("Niche tags (comma separated)", current.get("niche_tags", ""), key=k(f"{key}_tags"))
     region_options = ["", *FYLKER]
     data["region"] = st.selectbox(
-        "Region (fylke)", region_options,
+        "Region (county)", region_options,
         index=region_options.index(current.get("region")) if current.get("region") in region_options else 0,
         key=k(f"{key}_region"),
     )
